@@ -3,7 +3,7 @@ use std::path::Path;
 use actix_multipart::Multipart;
 use actix_web::{HttpResponse, Responder, get, post, web};
 use futures_util::TryStreamExt;
-use serde::{Serialize};
+use serde::Serialize;
 use tracing::{error, info, warn};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -95,7 +95,9 @@ async fn upload_csv_service(mut payload: Multipart) -> impl Responder {
     }
 
     while let Some(mut field) = payload.try_next().await.unwrap_or(None) {
-        let filename = field.content_disposition().and_then(|cd| cd.get_filename().map(|s| s.to_string()));
+        let filename = field
+            .content_disposition()
+            .and_then(|cd| cd.get_filename().map(|s| s.to_string()));
 
         if let Some(filename) = filename {
             // Validate file extension
@@ -113,7 +115,17 @@ async fn upload_csv_service(mut payload: Multipart) -> impl Responder {
                 .extension()
                 .and_then(|ext| ext.to_str())
                 .unwrap_or("csv");
-            let unique_filename = format!("{}_{}.{}", file_id, filename, file_extension);
+
+            // remove the extension from the filename if it exists
+            let filename_without_extension = Path::new(&filename)
+                .file_stem()
+                .and_then(|stem| stem.to_str())
+                .unwrap_or(&filename);
+
+            let unique_filename = format!(
+                "{}_{}.{}",
+                file_id, filename_without_extension, file_extension
+            );
             let filepath = Path::new(UPLOAD_DIR).join(&unique_filename);
 
             // Create file and write data
@@ -135,20 +147,23 @@ async fn upload_csv_service(mut payload: Multipart) -> impl Responder {
             // Read file data
             while let Some(chunk) = field.try_next().await.unwrap_or(None) {
                 file_size += chunk.len() as u64;
-                
+
                 // Check file size limit
                 if file_size > MAX_FILE_SIZE as u64 {
                     // Clean up the file
                     let _ = tokio::fs::remove_file(&filepath).await;
                     return HttpResponse::PayloadTooLarge().json(ErrorResponse {
                         success: false,
-                        message: format!("File too large. Maximum size is {} MB", MAX_FILE_SIZE / (1024 * 1024)),
+                        message: format!(
+                            "File too large. Maximum size is {} MB",
+                            MAX_FILE_SIZE / (1024 * 1024)
+                        ),
                         error_code: Some("FILE_TOO_LARGE".to_string()),
                     });
                 }
 
                 file_data.extend_from_slice(&chunk);
-                
+
                 if let Err(e) = tokio::io::AsyncWriteExt::write_all(&mut file, &chunk).await {
                     error!("Failed to write to file: {}", e);
                     let _ = tokio::fs::remove_file(&filepath).await;
@@ -175,7 +190,10 @@ async fn upload_csv_service(mut payload: Multipart) -> impl Responder {
                 }
             };
 
-            info!("CSV file uploaded successfully: {} ({} bytes, {} rows)", filename, file_size, row_count);
+            info!(
+                "CSV file uploaded successfully: {} ({} bytes, {} rows)",
+                filename, file_size, row_count
+            );
 
             return HttpResponse::Ok().json(CsvUploadResponse {
                 success: true,
@@ -203,7 +221,8 @@ fn validate_and_count_csv(data: &[u8]) -> Result<usize, String> {
     let mut row_count = 0;
 
     // Validate headers exist
-    let _headers = reader.headers()
+    let _headers = reader
+        .headers()
         .map_err(|e| format!("Failed to read CSV headers: {}", e))?;
 
     // Count and validate rows
