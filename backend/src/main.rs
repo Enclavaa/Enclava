@@ -1,4 +1,5 @@
 mod api;
+mod config;
 mod helpers;
 mod state;
 mod types;
@@ -11,14 +12,11 @@ use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberI
 use utoipa_actix_web::AppExt;
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::state::AppState;
+use crate::{config::APP_CONFIG, state::AppState};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     color_eyre::install().expect("Failed to install color_eyre");
-
-    // Init dotenvy
-    dotenvy::dotenv().ok();
 
     // Initialize the logger logic
     let file_appender = tracing_appender::rolling::daily("./logs", "enclava_backend.log");
@@ -40,20 +38,12 @@ async fn main() -> std::io::Result<()> {
         .with(file_layer)
         .init();
 
-    // Initalize empty state
-    let app_state = web::Data::new(AppState::new().await);
-
     info!("Logger initialized Successfully");
 
-    let port: u16 = std::env::var("PORT")
-        .unwrap_or_else(|_| "8080".to_string())
-        .parse()
-        .map_err(|e| {
-            std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                format!("Failed to parse PORT environment variable: {}", e),
-            )
-        })?;
+    // Initialize a new application state
+    let app_state = web::Data::new(AppState::new().await);
+
+    let port = APP_CONFIG.port;
 
     // Start the http server
     info!("Starting Http Server at http://127.0.0.1:{}", port);
