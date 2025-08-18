@@ -46,7 +46,12 @@ async fn main() -> std::io::Result<()> {
     let port: u16 = std::env::var("PORT")
         .unwrap_or_else(|_| "8080".to_string())
         .parse()
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, format!("Failed to parse PORT environment variable: {}", e)))?;
+        .map_err(|e| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                format!("Failed to parse PORT environment variable: {}", e),
+            )
+        })?;
 
     // Start the http server
     info!("Starting Http Server at http://127.0.0.1:{}", port);
@@ -67,6 +72,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::clone(&app_state))
             .service(api::get_index_service)
             .service(api::get_health_service)
+            .service(api::upload_csv_service)
             .split_for_parts();
 
         app.service(SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-docs/openapi.json", app_api))
