@@ -8,7 +8,7 @@ use tracing::{error, info, warn};
 
 use uuid::Uuid;
 
-use crate::types::{CsvUploadResponse, ErrorResponse, FileUploadRequest};
+use crate::{helpers, types::{CsvUploadResponse, ErrorResponse, FileUploadRequest}};
 
 #[utoipa::path(
         responses(
@@ -44,7 +44,7 @@ async fn get_health_service() -> impl Responder {
         (status = 413, description = "File too large", body = ErrorResponse),
         (status = 500, description = "Internal server error", body = ErrorResponse)
     ),
-    tag = "File Upload"
+    tag = "Data Management"
 )]
 #[post("/upload-csv")]
 async fn upload_csv_service(mut payload: Multipart) -> impl Responder {
@@ -143,7 +143,7 @@ async fn upload_csv_service(mut payload: Multipart) -> impl Responder {
             }
 
             // Validate and count CSV rows
-            let row_count = match validate_and_count_csv(&file_data) {
+            let row_count = match helpers::csv::validate_and_count_csv(&file_data) {
                 Ok(count) => count,
                 Err(e) => {
                     warn!("CSV validation failed: {}", e);
@@ -180,25 +180,3 @@ async fn upload_csv_service(mut payload: Multipart) -> impl Responder {
     })
 }
 
-fn validate_and_count_csv(data: &[u8]) -> Result<usize, String> {
-    let content = String::from_utf8(data.to_vec())
-        .map_err(|_| "File contains invalid UTF-8 characters".to_string())?;
-
-    let mut reader = csv::Reader::from_reader(content.as_bytes());
-    let mut row_count = 0;
-
-    // Validate headers exist
-    let _headers = reader
-        .headers()
-        .map_err(|e| format!("Failed to read CSV headers: {}", e))?;
-
-    // Count and validate rows
-    for result in reader.records() {
-        match result {
-            Ok(_) => row_count += 1,
-            Err(e) => return Err(format!("Invalid CSV row: {}", e)),
-        }
-    }
-
-    Ok(row_count)
-}
