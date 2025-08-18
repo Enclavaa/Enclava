@@ -1,19 +1,20 @@
-use std::path::Path;
+use std::{num::NonZeroU64, path::Path};
 
 use actix_multipart::Multipart;
-use actix_web::{HttpResponse, Responder, get, post, web};
+use actix_web::{HttpResponse, Responder, get, post};
 use futures_util::TryStreamExt;
 
 use tracing::{error, info, warn};
 
 use uuid::Uuid;
 
-use crate::{helpers, types::{CsvUploadResponse, ErrorResponse, FileUploadRequest}};
+use crate::{helpers, types::{DatasetUploadResponse, ErrorResponse, DatasetUploadRequest, DatasetMetadata}};
 
 #[utoipa::path(
         responses(
             (status = 200, description = "Home page", body = String),
-        )
+        ), 
+        tag = "Health"
     )]
 #[get("/")]
 async fn get_index_service() -> impl Responder {
@@ -23,7 +24,8 @@ async fn get_index_service() -> impl Responder {
 #[utoipa::path(
     responses(
         (status = 200, description = "Health check", body = String),
-    )
+    ),
+    tag = "Health"
 )]
 #[get("/health")]
 async fn get_health_service() -> impl Responder {
@@ -32,22 +34,22 @@ async fn get_health_service() -> impl Responder {
 
 #[utoipa::path(
     post,
-    path = "/upload-csv",
+    path = "/dataset/upload",
     request_body(
-        content = FileUploadRequest,
+        content = DatasetUploadRequest,
         content_type = "multipart/form-data",
-        description = "Upload a CSV file. The file should be sent as form data with the field name 'file'."
+        description = "Upload your dataset with metadata. Send the CSV file as 'file' and individual metadata fields: user_address, dataset_price, description, and name."
     ),
     responses(
-        (status = 200, description = "CSV file uploaded successfully", body = CsvUploadResponse),
+        (status = 200, description = "Dataset uploaded successfully", body = DatasetUploadResponse),
         (status = 400, description = "Bad request - invalid file or format", body = ErrorResponse),
         (status = 413, description = "File too large", body = ErrorResponse),
         (status = 500, description = "Internal server error", body = ErrorResponse)
     ),
     tag = "Data Management"
 )]
-#[post("/upload-csv")]
-async fn upload_csv_service(mut payload: Multipart) -> impl Responder {
+#[post("/dataset/upload")]
+async fn upload_dataset_service(mut payload: Multipart) -> impl Responder {
     const MAX_FILE_SIZE: usize = 10 * 1024 * 1024; // 10MB
     const UPLOAD_DIR: &str = "./uploads";
 
@@ -61,122 +63,222 @@ async fn upload_csv_service(mut payload: Multipart) -> impl Responder {
         });
     }
 
+    let mut file_data: Option<(String, Vec<u8>, u64)> = None; // (filename, data, size)
+    let mut user_address: Option<String> = None;
+    let mut dataset_price: Option<u64> = None;
+    let mut description: Option<String> = None;
+    let mut name: Option<String> = None;
+
     while let Some(mut field) = payload.try_next().await.unwrap_or(None) {
-        let filename = field
-            .content_disposition()
-            .and_then(|cd| cd.get_filename().map(|s| s.to_string()));
+        let field_name = field.name().unwrap_or("").to_string();
 
-        if let Some(filename) = filename {
-            // Validate file extension
-            if !filename.to_lowercase().ends_with(".csv") {
-                return HttpResponse::BadRequest().json(ErrorResponse {
-                    success: false,
-                    message: "Only CSV files are allowed".to_string(),
-                    error_code: Some("INVALID_FILE_TYPE".to_string()),
-                });
-            }
+        match field_name.as_str() {
+            "file" => {
+                let filename = field
+                    .content_disposition()
+                    .and_then(|cd| cd.get_filename().map(|s| s.to_string()));
 
-            // Generate unique file ID and path
-            let file_id = Uuid::new_v4().to_string();
-            let file_extension = Path::new(&filename) // Pass reference here
-                .extension()
-                .and_then(|ext| ext.to_str())
-                .unwrap_or("csv");
+                if let Some(filename) = filename {
+                    // Validate file extension
+                    if !filename.to_lowercase().ends_with(".csv") {
+                        return HttpResponse::BadRequest().json(ErrorResponse {
+                            success: false,
+                            message: "Only CSV files are allowed".to_string(),
+                            error_code: Some("INVALID_FILE_TYPE".to_string()),
+                        });
+                    }
 
-            // remove the extension from the filename if it exists
-            let filename_without_extension = Path::new(&filename)
-                .file_stem()
-                .and_then(|stem| stem.to_str())
-                .unwrap_or(&filename);
+                    let mut file_size = 0u64;
+                    let mut file_bytes = Vec::new();
 
-            let unique_filename = format!(
-                "{}_{}.{}",
-                file_id, filename_without_extension, file_extension
-            );
-            let filepath = Path::new(UPLOAD_DIR).join(&unique_filename);
+                    // Read file data
+                    while let Some(chunk) = field.try_next().await.unwrap_or(None) {
+                        file_size += chunk.len() as u64;
 
-            // Create file and write data
-            let mut file = match tokio::fs::File::create(&filepath).await {
-                Ok(file) => file,
-                Err(e) => {
-                    error!("Failed to create file: {}", e);
-                    return HttpResponse::InternalServerError().json(ErrorResponse {
-                        success: false,
-                        message: "Failed to create file".to_string(),
-                        error_code: Some("FILE_CREATION_FAILED".to_string()),
-                    });
-                }
-            };
+                        // Check file size limit
+                        if file_size > MAX_FILE_SIZE as u64 {
+                            return HttpResponse::PayloadTooLarge().json(ErrorResponse {
+                                success: false,
+                                message: format!(
+                                    "File too large. Maximum size is {} MB",
+                                    MAX_FILE_SIZE / (1024 * 1024)
+                                ),
+                                error_code: Some("FILE_TOO_LARGE".to_string()),
+                            });
+                        }
 
-            let mut file_size = 0u64;
-            let mut file_data = Vec::new();
+                        file_bytes.extend_from_slice(&chunk);
+                    }
 
-            // Read file data
-            while let Some(chunk) = field.try_next().await.unwrap_or(None) {
-                file_size += chunk.len() as u64;
-
-                // Check file size limit
-                if file_size > MAX_FILE_SIZE as u64 {
-                    // Clean up the file
-                    let _ = tokio::fs::remove_file(&filepath).await;
-                    return HttpResponse::PayloadTooLarge().json(ErrorResponse {
-                        success: false,
-                        message: format!(
-                            "File too large. Maximum size is {} MB",
-                            MAX_FILE_SIZE / (1024 * 1024)
-                        ),
-                        error_code: Some("FILE_TOO_LARGE".to_string()),
-                    });
-                }
-
-                file_data.extend_from_slice(&chunk);
-
-                if let Err(e) = tokio::io::AsyncWriteExt::write_all(&mut file, &chunk).await {
-                    error!("Failed to write to file: {}", e);
-                    let _ = tokio::fs::remove_file(&filepath).await;
-                    return HttpResponse::InternalServerError().json(ErrorResponse {
-                        success: false,
-                        message: "Failed to write file".to_string(),
-                        error_code: Some("FILE_WRITE_FAILED".to_string()),
-                    });
+                    file_data = Some((filename, file_bytes, file_size));
                 }
             }
-
-            // Validate and count CSV rows
-            let row_count = match helpers::csv::validate_and_count_csv(&file_data) {
-                Ok(count) => count,
-                Err(e) => {
-                    warn!("CSV validation failed: {}", e);
-                    // Clean up the file
-                    let _ = tokio::fs::remove_file(&filepath).await;
-                    return HttpResponse::BadRequest().json(ErrorResponse {
-                        success: false,
-                        message: format!("Invalid CSV format: {}", e),
-                        error_code: Some("INVALID_CSV_FORMAT".to_string()),
-                    });
+            "user_address" => {
+                let mut field_bytes = Vec::new();
+                while let Some(chunk) = field.try_next().await.unwrap_or(None) {
+                    field_bytes.extend_from_slice(&chunk);
                 }
-            };
-
-            info!(
-                "CSV file uploaded successfully: {} ({} bytes, {} rows)",
-                filename, file_size, row_count
-            );
-
-            return HttpResponse::Ok().json(CsvUploadResponse {
-                success: true,
-                message: "CSV file uploaded successfully".to_string(),
-                file_id: Some(file_id),
-                filename: Some(filename.to_string()),
-                file_size: Some(file_size),
-                row_count: Some(row_count),
-            });
+                user_address = Some(String::from_utf8_lossy(&field_bytes).to_string());
+            }
+            "dataset_price" => {
+                let mut field_bytes = Vec::new();
+                while let Some(chunk) = field.try_next().await.unwrap_or(None) {
+                    field_bytes.extend_from_slice(&chunk);
+                }
+                let price_str = String::from_utf8_lossy(&field_bytes);
+                dataset_price = match price_str.parse::<u64>() {
+                    Ok(price) => Some(price),
+                    Err(_) => {
+                        return HttpResponse::BadRequest().json(ErrorResponse {
+                            success: false,
+                            message: "Invalid dataset_price. Must be a number (1 or 2)".to_string(),
+                            error_code: Some("INVALID_DATASET_PRICE_FORMAT".to_string()),
+                        });
+                    }
+                };
+            }
+            "description" => {
+                let mut field_bytes = Vec::new();
+                while let Some(chunk) = field.try_next().await.unwrap_or(None) {
+                    field_bytes.extend_from_slice(&chunk);
+                }
+                description = Some(String::from_utf8_lossy(&field_bytes).to_string());
+            }
+            "name" => {
+                let mut field_bytes = Vec::new();
+                while let Some(chunk) = field.try_next().await.unwrap_or(None) {
+                    field_bytes.extend_from_slice(&chunk);
+                }
+                name = Some(String::from_utf8_lossy(&field_bytes).to_string());
+            }
+            _ => {
+                // Skip unknown fields
+                while let Some(_chunk) = field.try_next().await.unwrap_or(None) {
+                    // Just consume the field
+                }
+            }
         }
     }
 
-    HttpResponse::BadRequest().json(ErrorResponse {
-        success: false,
-        message: "No file found in the request".to_string(),
-        error_code: Some("NO_FILE_FOUND".to_string()),
+    // Validate that both file and metadata were provided
+    let (filename, file_bytes, file_size) = match file_data {
+        Some(data) => data,
+        None => {
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: "No file found in the request".to_string(),
+                error_code: Some("NO_FILE_FOUND".to_string()),
+            });
+        }
+    };
+
+    // Validate all required fields are present
+    let user_address = match user_address {
+        Some(addr) => addr,
+        None => {
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: "user_address field is required".to_string(),
+                error_code: Some("MISSING_USER_ADDRESS".to_string()),
+            });
+        }
+    };
+
+    let dataset_price = match dataset_price {
+        Some(price) => price,
+        None => {
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: "dataset_price field is required".to_string(),
+                error_code: Some("MISSING_DATASET_PRICE".to_string()),
+            });
+        }
+    };
+
+    let description = match description {
+        Some(desc) => desc,
+        None => {
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: "description field is required".to_string(),
+                error_code: Some("MISSING_DESCRIPTION".to_string()),
+            });
+        }
+    };
+
+    let name = match name {
+        Some(n) => n,
+        None => {
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: "name field is required".to_string(),
+                error_code: Some("MISSING_NAME".to_string()),
+            });
+        }
+    };
+
+    // Create metadata object
+    let metadata = DatasetMetadata {
+        user_address: user_address.clone(),
+        dataset_price,
+        description,
+        name,
+    };
+
+    // Validate and count CSV rows
+    let row_count = match helpers::csv::validate_and_count_csv(&file_bytes) {
+        Ok(count) => count,
+        Err(e) => {
+            warn!("CSV validation failed: {}", e);
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: format!("Invalid CSV format: {}", e),
+                error_code: Some("INVALID_CSV_FORMAT".to_string()),
+            });
+        }
+    };
+
+    // Generate unique file ID and save file
+    let file_id = Uuid::new_v4().to_string();
+    let file_extension = Path::new(&filename)
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .unwrap_or("csv");
+
+    let filename_without_extension = Path::new(&filename)
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .unwrap_or(&filename);
+
+    let unique_filename = format!(
+        "{}_{}.{}",
+        file_id, filename_without_extension, file_extension
+    );
+    let filepath = Path::new(UPLOAD_DIR).join(&unique_filename);
+
+    // Save file to disk
+    if let Err(e) = tokio::fs::write(&filepath, &file_bytes).await {
+        error!("Failed to write file: {}", e);
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            success: false,
+            message: "Failed to save file".to_string(),
+            error_code: Some("FILE_SAVE_FAILED".to_string()),
+        });
+    }
+
+    info!(
+        "Dataset uploaded successfully: {} ({} bytes, {} rows) by user {}",
+        filename, file_size, row_count, user_address
+    );
+
+    HttpResponse::Ok().json(DatasetUploadResponse {
+        success: true,
+        message: "Dataset uploaded successfully".to_string(),
+        file_id: Some(file_id),
+        filename: Some(filename),
+        file_size: Some(file_size),
+        row_count: Some(row_count),
+        metadata: Some(metadata),
     })
 }
 

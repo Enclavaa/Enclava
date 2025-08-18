@@ -74,7 +74,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::clone(&app_state))
             .service(api::get_index_service)
             .service(api::get_health_service)
-            .service(api::upload_csv_service)
+            .service(api::upload_dataset_service)
             .split_for_parts();
 
         app.service(SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-docs/openapi.json", app_api))

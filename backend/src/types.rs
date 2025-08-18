@@ -1,9 +1,8 @@
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-use serde::Serialize;
-
 
 #[derive(Serialize, ToSchema)]
-pub struct CsvUploadResponse {
+pub struct DatasetUploadResponse {
     /// Success status of the upload
     pub success: bool,
     /// Message describing the result
@@ -16,6 +15,8 @@ pub struct CsvUploadResponse {
     pub file_size: Option<u64>,
     /// Number of rows in the CSV (excluding header)
     pub row_count: Option<usize>,
+    /// Dataset metadata
+    pub metadata: Option<DatasetMetadata>,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -28,9 +29,31 @@ pub struct ErrorResponse {
     pub error_code: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct DatasetMetadata {
+    /// Blockchain address of the user
+    pub user_address: String,
+    /// Dataset price
+    #[schema(minimum = 1, maximum = 50000000)]
+    pub dataset_price: u64,
+    /// Description of the dataset
+    pub description: String,
+    /// Name of the dataset
+    pub name: String,
+}
+
 #[derive(ToSchema)]
-pub struct FileUploadRequest {
+pub struct DatasetUploadRequest {
     /// CSV file to upload
     #[schema(value_type = String, format = Binary)]
     pub file: Vec<u8>,
+    /// Blockchain address of the user
+    pub user_address: String,
+    /// Dataset price
+    #[schema(minimum = 1, maximum = 5800000)]
+    pub dataset_price: u64,
+    /// Description of the dataset
+    pub description: String,
+    /// Name of the dataset
+    pub name: String,
 }
