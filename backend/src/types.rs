@@ -34,8 +34,8 @@ pub struct DatasetMetadata {
     /// Blockchain address of the user
     pub user_address: String,
     /// Dataset price
-    #[schema(minimum = 1, maximum = 50000000)]
-    pub dataset_price: u64,
+    #[schema(minimum = 1.0, maximum = 50000000.0)]
+    pub dataset_price: f64,
     /// Description of the dataset
     pub description: String,
     /// Name of the dataset
@@ -50,10 +50,16 @@ pub struct DatasetUploadRequest {
     /// Blockchain address of the user
     pub user_address: String,
     /// Dataset price
-    #[schema(minimum = 1, maximum = 5800000)]
-    pub dataset_price: u64,
+    #[schema(minimum = 1.0, maximum = 5800000.0)]
+    pub dataset_price: f64,
     /// Description of the dataset
     pub description: String,
     /// Name of the dataset
     pub name: String,
+}
+
+#[derive(Serialize, Deserialize, sqlx::FromRow, Debug)]
+pub struct UserDb {
+    pub id: i64,
+    pub address: String,
 }

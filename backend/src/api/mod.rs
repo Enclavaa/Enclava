@@ -1,14 +1,14 @@
 use std::{num::NonZeroU64, path::Path};
 
 use actix_multipart::Multipart;
-use actix_web::{HttpResponse, Responder, get, post};
+use actix_web::{get, post, web, HttpResponse, Responder};
 use futures_util::TryStreamExt;
 
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 
 use uuid::Uuid;
 
-use crate::{helpers, types::{DatasetUploadResponse, ErrorResponse, DatasetUploadRequest, DatasetMetadata}};
+use crate::{database, helpers, state::AppState, types::{DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse, ErrorResponse, UserDb}};
 
 #[utoipa::path(
         responses(
@@ -49,7 +49,7 @@ async fn get_health_service() -> impl Responder {
     tag = "Data Management"
 )]
 #[post("/dataset/upload")]
-async fn upload_dataset_service(mut payload: Multipart) -> impl Responder {
+async fn upload_dataset_service(app_state: web::Data<AppState>, mut payload: Multipart) -> impl Responder {
     const MAX_FILE_SIZE: usize = 10 * 1024 * 1024; // 10MB
     const UPLOAD_DIR: &str = "./uploads";
 
@@ -65,7 +65,7 @@ async fn upload_dataset_service(mut payload: Multipart) -> impl Responder {
 
     let mut file_data: Option<(String, Vec<u8>, u64)> = None; // (filename, data, size)
     let mut user_address: Option<String> = None;
-    let mut dataset_price: Option<u64> = None;
+    let mut dataset_price: Option<f64> = None;
     let mut description: Option<String> = None;
     let mut name: Option<String> = None;
 
@@ -126,7 +126,7 @@ async fn upload_dataset_service(mut payload: Multipart) -> impl Responder {
                     field_bytes.extend_from_slice(&chunk);
                 }
                 let price_str = String::from_utf8_lossy(&field_bytes);
-                dataset_price = match price_str.parse::<u64>() {
+                dataset_price = match price_str.parse::<f64>() {
                     Ok(price) => Some(price),
                     Err(_) => {
                         return HttpResponse::BadRequest().json(ErrorResponse {
@@ -221,8 +221,8 @@ async fn upload_dataset_service(mut payload: Multipart) -> impl Responder {
     let metadata = DatasetMetadata {
         user_address: user_address.clone(),
         dataset_price,
-        description,
-        name,
+        description: description.clone(),
+        name: name.clone(),
     };
 
     // Validate and count CSV rows
@@ -270,6 +270,119 @@ async fn upload_dataset_service(mut payload: Multipart) -> impl Responder {
         "Dataset uploaded successfully: {} ({} bytes, {} rows) by user {}",
         filename, file_size, row_count, user_address
     );
+
+
+
+    // Now save the dataset to the database
+
+    let db = &app_state.db;
+
+    let mut tx = match db.begin().await {
+        Ok(tx) => tx,
+        Err(e) => {
+            error!("Failed to start transaction: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: "Failed to start database transaction".to_string(),
+                error_code: Some("DB_TRANSACTION_FAILED".to_string()),
+            });
+        }
+    };
+
+
+    let user_op = match database::get_user_by_address(&mut tx, &user_address).await {
+        Ok(user) => user,
+        Err(e) => {
+            error!("Failed to get user: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: "Failed to get user at the first fetch".to_string(),
+                error_code: Some("USER_FETCH_FAILED".to_string()),
+            });
+        }
+    };
+
+    debug!("User operation result: {:?}", user_op);
+
+
+    let user: UserDb =  if user_op.is_none() {
+        // If user does not exist, insert them
+        if let Err(e) = database::insert_user(&mut tx, &user_address).await {
+
+            tx.rollback().await.ok(); // Rollback transaction on error
+
+            error!("Failed to insert a new user: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: "Failed to insert user".to_string(),
+                error_code: Some("USER_INSERT_FAILED".to_string()),
+            });
+        }
+
+    let user_ret = match database::get_user_by_address(&mut tx, &user_address).await {
+        Ok(user) => user,
+        Err(e) => {
+            error!("Failed to get user: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: "Failed to get user".to_string(),
+                error_code: Some("USER_FETCH_FAILED".to_string()),
+            });
+        }
+    };
+
+        if user_ret.is_none() {
+            // throw an error
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: "Failed to get user".to_string(),
+                error_code: Some("USER_FETCH_FAILED".to_string()),
+            });
+        }
+
+        user_ret.unwrap()
+
+    } else {
+       user_op.unwrap()
+    }; 
+
+
+
+    let dataset_path =  unique_filename;
+
+    // Insert a new agent
+    if let Err(e) = database::insert_new_agent(
+        &mut tx,
+        &name,
+        &description,
+        dataset_price,
+        user.id,
+        &dataset_path,
+    )
+    .await
+    {
+        error!("Failed to insert agent: {}", e);
+        
+        tx.rollback().await.ok(); // Rollback transaction on error
+
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            success: false,
+            message: "Failed to insert agent".to_string(),
+            error_code: Some("AGENT_INSERT_FAILED".to_string()),
+        });
+    }
+
+
+
+    // Commit the transaction
+    if let Err(e) = tx.commit().await {
+        error!("Failed to commit transaction: {}", e);
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            success: false,
+            message: "Failed to commit database transaction".to_string(),
+            error_code: Some("DB_COMMIT_FAILED".to_string()),
+        });
+    }
 
     HttpResponse::Ok().json(DatasetUploadResponse {
         success: true,
