@@ -1,5 +1,6 @@
 mod api;
 mod state;
+mod types;
 
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
