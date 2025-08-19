@@ -25,19 +25,18 @@ pub async fn init_ai_agent_with_dataset(
     // Initialize the AI agent with the specified model and dataset
     let ai_model = &app_state.ai_model;
 
-    let agent_builder = ai_model.agent(GEMINI_2_5_FLASH_PREVIEW_05_20);
+    let agent_builder = ai_model.agent("gemini-2.5-flash");
 
     let dataset_content = tokio::fs::read_to_string(dataset_csv_path).await?;
 
     let agent_instruction = format!(
-        "You are an AI agent ({}) who is responsible for answering questions about the csv dataset added to you (it is your only context). Do not use any other knowledge source to answer questions. The Dataset description is {}",
-        agent_db.name, agent_db.description
+        "You are an AI agent ({}) who is responsible for answering questions about the csv dataset added to you (it is your only context). Do not use any other knowledge source to answer questions. Return only the answer. The Dataset description is {}. The Dataset csv : {}",
+        agent_db.name, agent_db.description, dataset_content
     );
 
     let agent = agent_builder
         .name(&agent_db.name)
         .preamble(&agent_instruction)
-        .context(&dataset_content)
         .temperature(0.0)
         .additional_params(json!(
             {
@@ -66,19 +65,18 @@ pub async fn load_db_agents(
     for agent_db in db_agents {
         let dataset_csv_path = Path::new(UPLOAD_DIR).join(&agent_db.dataset_path);
 
-        let agent_builder = ai_model.agent(GEMINI_2_5_FLASH_PREVIEW_05_20);
+        let agent_builder = ai_model.agent("gemini-2.5-flash");
 
         let dataset_content = tokio::fs::read_to_string(dataset_csv_path).await?;
 
         let agent_instruction = format!(
-            "You are an AI agent ({}) who is responsible for answering questions about the csv dataset added to you (it is your only context). Do not use any other knowledge source to answer questions. The Dataset description is {}",
-            agent_db.name, agent_db.description
+            "You are an AI agent ({}) who is responsible for answering questions about the csv dataset added to you (it is your only context). Do not use any other knowledge source to answer questions. Return only the answer. The Dataset description is {}. The Dataset csv : {}",
+            agent_db.name, agent_db.description, dataset_content
         );
 
         let agent = agent_builder
             .name(&agent_db.name)
             .preamble(&agent_instruction)
-            .context(&dataset_content)
             .temperature(0.0)
             .additional_params(json!(
                 {
