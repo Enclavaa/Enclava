@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+
+use dashmap::DashMap;
+use rig::{agent::Agent, client::ProviderClient, providers};
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 
 use crate::config::APP_CONFIG;
@@ -6,6 +10,8 @@ use tracing::info;
 
 pub struct AppState {
     pub db: Pool<Postgres>,
+    pub ai_model: providers::gemini::Client,
+    pub tee_agents: DashMap<i64, Agent<providers::gemini::completion::CompletionModel>>,
 }
 
 impl AppState {
@@ -22,6 +28,18 @@ impl AppState {
 
         info!("Database connection established successfully");
 
-        Self { db }
+        let ai_model = providers::gemini::Client::from_env();
+
+        info!("AI model client initialized successfully");
+
+        let tee_agents = DashMap::new();
+
+        // TODO: normally those tee agent will be on another enclave that will never stops, but for now we should intize them again using agents db table.
+
+        Self {
+            db,
+            ai_model,
+            tee_agents,
+        }
     }
 }

@@ -1,19 +1,30 @@
-use std::{num::NonZeroU64, path::Path};
+use std::path::{Path, PathBuf};
 
 use actix_multipart::Multipart;
-use actix_web::{get, post, web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, get, post, web};
 use futures_util::TryStreamExt;
 
+use rig::providers::{self, gemini::completion::GEMINI_2_5_FLASH_PREVIEW_05_20};
+use serde_json::json;
 use tracing::{debug, error, info, warn};
 
 use uuid::Uuid;
 
-use crate::{database, helpers, state::AppState, types::{DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse, ErrorResponse, UserDb}};
+use color_eyre::Result;
+
+use crate::{
+    database, helpers,
+    state::AppState,
+    types::{
+        AgentDb, DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse, ErrorResponse,
+        UserDb,
+    },
+};
 
 #[utoipa::path(
         responses(
             (status = 200, description = "Home page", body = String),
-        ), 
+        ),
         tag = "Health"
     )]
 #[get("/")]
@@ -49,7 +60,10 @@ async fn get_health_service() -> impl Responder {
     tag = "Data Management"
 )]
 #[post("/dataset/upload")]
-async fn upload_dataset_service(app_state: web::Data<AppState>, mut payload: Multipart) -> impl Responder {
+async fn upload_dataset_service(
+    app_state: web::Data<AppState>,
+    mut payload: Multipart,
+) -> impl Responder {
     const MAX_FILE_SIZE: usize = 10 * 1024 * 1024; // 10MB
     const UPLOAD_DIR: &str = "./uploads";
 
@@ -271,8 +285,6 @@ async fn upload_dataset_service(app_state: web::Data<AppState>, mut payload: Mul
         filename, file_size, row_count, user_address
     );
 
-
-
     // Now save the dataset to the database
 
     let db = &app_state.db;
@@ -289,7 +301,6 @@ async fn upload_dataset_service(app_state: web::Data<AppState>, mut payload: Mul
         }
     };
 
-
     let user_op = match database::get_user_by_address(&mut tx, &user_address).await {
         Ok(user) => user,
         Err(e) => {
@@ -304,11 +315,9 @@ async fn upload_dataset_service(app_state: web::Data<AppState>, mut payload: Mul
 
     debug!("User operation result: {:?}", user_op);
 
-
-    let user: UserDb =  if user_op.is_none() {
+    let user: UserDb = if user_op.is_none() {
         // If user does not exist, insert them
         if let Err(e) = database::insert_user(&mut tx, &user_address).await {
-
             tx.rollback().await.ok(); // Rollback transaction on error
 
             error!("Failed to insert a new user: {}", e);
@@ -319,17 +328,17 @@ async fn upload_dataset_service(app_state: web::Data<AppState>, mut payload: Mul
             });
         }
 
-    let user_ret = match database::get_user_by_address(&mut tx, &user_address).await {
-        Ok(user) => user,
-        Err(e) => {
-            error!("Failed to get user: {}", e);
-            return HttpResponse::InternalServerError().json(ErrorResponse {
-                success: false,
-                message: "Failed to get user".to_string(),
-                error_code: Some("USER_FETCH_FAILED".to_string()),
-            });
-        }
-    };
+        let user_ret = match database::get_user_by_address(&mut tx, &user_address).await {
+            Ok(user) => user,
+            Err(e) => {
+                error!("Failed to get user: {}", e);
+                return HttpResponse::InternalServerError().json(ErrorResponse {
+                    success: false,
+                    message: "Failed to get user".to_string(),
+                    error_code: Some("USER_FETCH_FAILED".to_string()),
+                });
+            }
+        };
 
         if user_ret.is_none() {
             // throw an error
@@ -341,17 +350,14 @@ async fn upload_dataset_service(app_state: web::Data<AppState>, mut payload: Mul
         }
 
         user_ret.unwrap()
-
     } else {
-       user_op.unwrap()
-    }; 
+        user_op.unwrap()
+    };
 
-
-
-    let dataset_path =  unique_filename;
+    let dataset_path = unique_filename;
 
     // Insert a new agent
-    if let Err(e) = database::insert_new_agent(
+    let agent_db = match database::insert_new_agent(
         &mut tx,
         &name,
         &description,
@@ -361,18 +367,29 @@ async fn upload_dataset_service(app_state: web::Data<AppState>, mut payload: Mul
     )
     .await
     {
-        error!("Failed to insert agent: {}", e);
-        
-        tx.rollback().await.ok(); // Rollback transaction on error
+        Ok(agent) => agent,
+        Err(e) => {
+            error!("Failed to insert agent: {}", e);
 
+            tx.rollback().await.ok(); // Rollback transaction on error
+
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: "Failed to insert agent".to_string(),
+                error_code: Some("AGENT_INSERT_FAILED".to_string()),
+            });
+        }
+    };
+
+    // Implement training new ai agent using rag with gemini using rig-core
+    if let Err(e) = init_ai_agent_with_dataset(&user, &agent_db, &filepath, &app_state).await {
+        error!("Failed to initialize AI agent with dataset: {}", e);
         return HttpResponse::InternalServerError().json(ErrorResponse {
             success: false,
-            message: "Failed to insert agent".to_string(),
-            error_code: Some("AGENT_INSERT_FAILED".to_string()),
+            message: format!("Failed to initialize AI agent with dataset: {}", e),
+            error_code: Some("AGENT_INIT_FAILED".to_string()),
         });
-    }
-
-
+    };
 
     // Commit the transaction
     if let Err(e) = tx.commit().await {
@@ -386,7 +403,7 @@ async fn upload_dataset_service(app_state: web::Data<AppState>, mut payload: Mul
 
     HttpResponse::Ok().json(DatasetUploadResponse {
         success: true,
-        message: "Dataset uploaded successfully".to_string(),
+        message: "Dataset uploaded and AI agent initialized successfully".to_string(),
         file_id: Some(file_id),
         filename: Some(filename),
         file_size: Some(file_size),
@@ -395,3 +412,39 @@ async fn upload_dataset_service(app_state: web::Data<AppState>, mut payload: Mul
     })
 }
 
+pub async fn init_ai_agent_with_dataset(
+    user: &UserDb,
+    agent_db: &AgentDb,
+    dataset_csv_path: &PathBuf,
+    app_state: &web::Data<AppState>,
+) -> Result<()> {
+    // Initialize the AI agent with the specified model and dataset
+    let ai_model = &app_state.ai_model;
+
+    let agent_builder = ai_model.agent(GEMINI_2_5_FLASH_PREVIEW_05_20);
+
+    let dataset_content = tokio::fs::read_to_string(dataset_csv_path).await?;
+
+    let agent_instruction = format!(
+        "You are an AI agent ({}) who is responsible for answering questions about the csv dataset added to you (it is your only context). Do not use any other knowledge source to answer questions. The Dataset description is {}",
+        agent_db.name, agent_db.description
+    );
+
+    let agent = agent_builder
+        .name(&agent_db.name)
+        .preamble(&agent_instruction)
+        .context(&dataset_content)
+        .temperature(0.0)
+        .additional_params(json!(
+            {
+                "description": agent_db.description,
+                "owner_id": user.id
+            }
+        ))
+        .build();
+
+    // Save the agent to the AppState tee_agents using its id
+    app_state.tee_agents.insert(agent_db.id, agent);
+
+    Ok(())
+}

@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -62,4 +63,17 @@ pub struct DatasetUploadRequest {
 pub struct UserDb {
     pub id: i64,
     pub address: String,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+pub struct AgentDb {
+    pub id: i64,
+    pub name: String,
+    pub description: String,
+    pub price: f64,
+    pub owner_id: i64,
+    pub dataset_path: String,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
