@@ -21,8 +21,9 @@ use crate::{
     helpers::{self, agents::init_ai_agent_with_dataset},
     state::AppState,
     types::{
-        AgentDb, DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse, ErrorResponse,
-        GetAgentsForPromptRequest, GetAgentsForPromptResponse, UserDb,
+        AgentDb, AgentResponse, DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse,
+        ErrorResponse, GetAgentsForPromptRequest, GetAgentsForPromptResponse,
+        GetResponseFromAgentsRequest, GetResponseFromAgentsResponse, UserDb,
     },
 };
 
@@ -527,5 +528,76 @@ async fn get_agents_for_prompt_service(
     })
 }
 
+/*
+Endpoint that will use specifid agents ids by user and will return the response from the agents specified.
+*/
+#[utoipa::path(
+    post,
+    path = "/chat/agents/answer", 
+    request_body(
+        content = GetResponseFromAgentsRequest,
+        content_type = "application/json",
+        description = "User prompt and specified agents ids to get response from and tx hashes to verify payment."
+    ),
+    responses(
+        (status = 200, description = "Agents responses fetched successfully", body = GetResponseFromAgentsResponse),
+        (status = 500, description = "Internal server error", body = ErrorResponse)
+    ),
+    tag = "Chat"
+)]
+#[post("/chat/agents/answer")]
+async fn get_response_from_agents_service(
+    app_state: web::Data<AppState>,
+    body: web::Json<GetResponseFromAgentsRequest>,
+) -> HttpResponse {
+    let agent_ids = &body.agent_ids;
+    let prompt = &body.prompt;
+    let _tx_hashes = &body.tx_hashes;
 
+    let mut agent_responses = Vec::new();
 
+    // TODO: verify payment using tx hashes
+
+    // Get response from each agent specified
+    for agent_id in agent_ids {
+        let agent = app_state.tee_agents.get(agent_id);
+
+        if agent.is_none() {
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: format!("Agent with id {} not running", agent_id),
+                error_code: Some("AGENT_NOT_FOUND".to_string()),
+            });
+        }
+
+        let agent = agent.unwrap();
+
+        let response = match agent.prompt(prompt).await {
+            Ok(response) => response,
+            Err(e) => {
+                error!("Failed to get AI response: {}", e);
+                return HttpResponse::InternalServerError().json(ErrorResponse {
+                    success: false,
+                    message: format!(
+                        "Failed to get AI response from agent with id {} : {}",
+                        agent_id, e
+                    ),
+                    error_code: Some("AI_RESPONSE_FAILED".to_string()),
+                });
+            }
+        };
+
+        let agent_response = AgentResponse {
+            agent_id: *agent_id,
+            prompt: prompt.clone(),
+            response,
+        };
+
+        agent_responses.push(agent_response);
+    }
+
+    HttpResponse::Ok().json(GetResponseFromAgentsResponse {
+        agent_responses,
+        success: true,
+    })
+}

@@ -89,3 +89,23 @@ pub struct GetAgentsForPromptRequest {
 pub struct GetAgentsForPromptResponse {
     pub agents: Vec<AgentDb>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct GetResponseFromAgentsRequest {
+    pub agent_ids: Vec<i64>,
+    pub prompt: String,
+    pub tx_hashes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct GetResponseFromAgentsResponse {
+    pub agent_responses: Vec<AgentResponse>,
+    pub success: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct AgentResponse {
+    pub agent_id: i64,
+    pub prompt: String,
+    pub response: String,
+}
