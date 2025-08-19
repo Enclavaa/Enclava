@@ -19,6 +19,8 @@ impl AppConfig {
         }
     }
 }
+pub const UPLOAD_DIR: &str = "./uploads";
+
 
 // Define a globally accessible static Config instance
 pub static APP_CONFIG: Lazy<AppConfig> = Lazy::new(AppConfig::load);

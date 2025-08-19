@@ -8,10 +8,7 @@ use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
 use crate::{
-    database,
-    helpers::{self, agents::init_ai_agent_with_dataset},
-    state::AppState,
-    types::{DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse, ErrorResponse, UserDb},
+    config::UPLOAD_DIR, database, helpers::{self, agents::init_ai_agent_with_dataset}, state::AppState, types::{DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse, ErrorResponse, UserDb}
 };
 
 #[utoipa::path(
@@ -58,7 +55,7 @@ async fn upload_dataset_service(
     mut payload: Multipart,
 ) -> impl Responder {
     const MAX_FILE_SIZE: usize = 10 * 1024 * 1024; // 10MB
-    const UPLOAD_DIR: &str = "./uploads";
+    
 
     // Create uploads directory if it doesn't exist
     if let Err(e) = tokio::fs::create_dir_all(UPLOAD_DIR).await {

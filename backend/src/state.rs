@@ -4,7 +4,7 @@ use dashmap::DashMap;
 use rig::{agent::Agent, client::ProviderClient, providers};
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 
-use crate::config::APP_CONFIG;
+use crate::{config::APP_CONFIG, helpers::agents::load_db_agents};
 
 use tracing::info;
 
@@ -32,9 +32,12 @@ impl AppState {
 
         info!("AI model client initialized successfully");
 
-        let tee_agents = DashMap::new();
+        // Normally those tee agent will be on another enclave that will never stops, but for now we should intize them again using agents db table.
+        let tee_agents = load_db_agents(&db, &ai_model)
+            .await
+            .expect("Failed to load agents from database");
 
-        // TODO: normally those tee agent will be on another enclave that will never stops, but for now we should intize them again using agents db table.
+        info!("{} Tee agents loaded successfully", tee_agents.len());
 
         Self {
             db,
