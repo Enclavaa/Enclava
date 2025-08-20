@@ -50,6 +50,54 @@ async fn get_health_service() -> impl Responder {
     HttpResponse::Ok().body("ok")
 }
 
+
+
+#[utoipa::path(
+    get,    
+    path = "/agents",
+    responses(
+        (status = 200, description = "Agents fetched successfully", body = Vec<AgentDb>),
+        (status = 500, description = "Internal server error", body = ErrorResponse)
+    ),
+    tag = "Agents"
+)]
+#[get("/agents")]
+async fn get_all_agents_service(app_state: web::Data<AppState>) -> impl Responder {
+    let db = &app_state.db;
+
+    let agents = match sqlx::query_as!(
+        AgentDb,
+        r#"SELECT 
+        id,
+        name,
+        description,
+        price,
+        owner_id,
+        dataset_path,
+        category as "category: AgentCategory",
+        status,
+        created_at,
+        updated_at
+     FROM agents"#
+    )
+    .fetch_all(db)
+    .await
+    {
+        Ok(agents) => agents,
+        Err(e) => {
+            error!("Failed to get agents: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: "Failed to get agents from database".to_string(),
+                error_code: Some("AGENT_FETCH_FAILED".to_string()),
+            });
+        }
+    };
+
+    HttpResponse::Ok().json(agents)
+
+}
+
 #[utoipa::path(
     post,
     path = "/dataset/upload",
@@ -466,7 +514,7 @@ Endpoint that its job is to get all the agents from database and using gemini ai
         (status = 200, description = "Agents fetched successfully", body = String),
         (status = 500, description = "Internal server error", body = ErrorResponse)
     ),
-    tag = "Chat"
+    tag = "Agents"
 )]
 #[post("/chat/agents")]
 async fn get_agents_for_prompt_service(
@@ -591,7 +639,7 @@ Endpoint that will use specifid agents ids by user and will return the response 
         (status = 200, description = "Agents responses fetched successfully", body = GetResponseFromAgentsResponse),
         (status = 500, description = "Internal server error", body = ErrorResponse)
     ),
-    tag = "Chat"
+    tag = "Agents"
 )]
 #[post("/chat/agents/answer")]
 async fn get_response_from_agents_service(
