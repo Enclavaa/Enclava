@@ -178,7 +178,7 @@ async fn upload_dataset_service(
                 while let Some(chunk) = field.try_next().await.unwrap_or(None) {
                     field_bytes.extend_from_slice(&chunk);
                 }
-                
+
                 category = match AgentCategory::from_string(&String::from_utf8_lossy(&field_bytes))
                 {
                     Some(cat) => Some(cat),
@@ -511,8 +511,8 @@ async fn get_agents_for_prompt_service(
         .iter()
         .map(|agent| {
             format!(
-                "{{\"id\":{},\"name\":\"{}\",\"description\":\"{}\"}}",
-                agent.id, agent.name, agent.description
+                "{{\"id\":{},\"name\":\"{}\",\"description\":\"{}\", \"category\":\"{}\"}}",
+                agent.id, agent.name, agent.description, agent.category.to_string()
             )
         })
         .collect::<Vec<_>>()
@@ -521,7 +521,7 @@ async fn get_agents_for_prompt_service(
     let model = gemini::Client::from_env();
     let ai = model
         .agent(GEMINI_2_0_FLASH_LITE)
-        .preamble("You are an AI agent that your main and only task is to return the agents ids that can respond to the user question. You decide wether to return an agent id by using their available description and name. You' ll find this data in your context. Remeber to always only return the response as an array of agents id.If you can't find anyone just return an empty array. Exemple of response : [5, 9]. ")
+        .preamble("You are an AI agent that your main and only task is to return the agents ids that can respond to the user question. You decide wether to return an agent id by using their available description, name and category. You' ll find this data in your context. Remeber to always only return the response as an array of agents id.If you can't find anyone just return an empty array. Exemple of response : [5, 9]. ")
         .temperature(0.0)
         .build();
 
