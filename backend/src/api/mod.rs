@@ -21,9 +21,10 @@ use crate::{
     helpers::{self, agents::init_ai_agent_with_dataset},
     state::AppState,
     types::{
-        AgentDb, AgentResponse, DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse,
-        ErrorResponse, GetAgentsForPromptRequest, GetAgentsForPromptResponse,
-        GetResponseFromAgentsRequest, GetResponseFromAgentsResponse, UserDb,
+        AgentCategory, AgentDb, AgentResponse, DatasetMetadata, DatasetUploadRequest,
+        DatasetUploadResponse, ErrorResponse, GetAgentsForPromptRequest,
+        GetAgentsForPromptResponse, GetResponseFromAgentsRequest, GetResponseFromAgentsResponse,
+        UserDb,
     },
 };
 
@@ -87,6 +88,7 @@ async fn upload_dataset_service(
     let mut dataset_price: Option<f64> = None;
     let mut description: Option<String> = None;
     let mut name: Option<String> = None;
+    let mut category: Option<AgentCategory> = None;
 
     while let Some(mut field) = payload.try_next().await.unwrap_or(None) {
         let field_name = field.name().unwrap_or("").to_string();
@@ -170,6 +172,25 @@ async fn upload_dataset_service(
                 }
                 name = Some(String::from_utf8_lossy(&field_bytes).to_string());
             }
+
+            "category" => {
+                let mut field_bytes = Vec::new();
+                while let Some(chunk) = field.try_next().await.unwrap_or(None) {
+                    field_bytes.extend_from_slice(&chunk);
+                }
+                
+                category = match AgentCategory::from_string(&String::from_utf8_lossy(&field_bytes))
+                {
+                    Some(cat) => Some(cat),
+                    None => {
+                        return HttpResponse::BadRequest().json(ErrorResponse {
+                            success: false,
+                            message: "Invalid category.".to_string(),
+                            error_code: Some("INVALID_CATEGORY".to_string()),
+                        });
+                    }
+                };
+            }
             _ => {
                 // Skip unknown fields
                 while let Some(_chunk) = field.try_next().await.unwrap_or(None) {
@@ -236,12 +257,24 @@ async fn upload_dataset_service(
         }
     };
 
+    let category = match category {
+        Some(cat) => cat,
+        None => {
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: "category field is required".to_string(),
+                error_code: Some("MISSING_CATEGORY".to_string()),
+            });
+        }
+    };
+
     // Create metadata object
     let metadata = DatasetMetadata {
         user_address: user_address.clone(),
         dataset_price,
         description: description.clone(),
         name: name.clone(),
+        category: category.clone(),
     };
 
     // Validate and count CSV rows
@@ -369,6 +402,7 @@ async fn upload_dataset_service(
         dataset_price,
         user.id,
         &dataset_path,
+        &category,
     )
     .await
     {
@@ -444,9 +478,23 @@ async fn get_agents_for_prompt_service(
     // Get the List of agents from database
     let db = &app_state.db;
 
-    let agents = match sqlx::query_as!(AgentDb, r#"SELECT * FROM agents"#)
-        .fetch_all(db)
-        .await
+    let agents = match sqlx::query_as!(
+        AgentDb,
+        r#"SELECT 
+        id,
+        name,
+        description,
+        price,
+        owner_id,
+        dataset_path,
+        category as "category: AgentCategory",
+        status,
+        created_at,
+        updated_at
+     FROM agents"#
+    )
+    .fetch_all(db)
+    .await
     {
         Ok(agents) => agents,
         Err(e) => {

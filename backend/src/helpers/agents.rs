@@ -13,7 +13,7 @@ use serde_json::json;
 use crate::{
     config::UPLOAD_DIR,
     state::AppState,
-    types::{AgentDb, UserDb},
+    types::{AgentCategory, AgentDb, UserDb},
 };
 
 pub async fn init_ai_agent_with_dataset(
@@ -58,9 +58,24 @@ pub async fn load_db_agents(
 ) -> Result<DashMap<i64, Agent<CompletionModel>>> {
     let tee_agents = DashMap::new();
 
-    let db_agents = sqlx::query_as!(AgentDb, r#"SELECT * FROM agents"#)
-        .fetch_all(db)
-        .await?;
+    let db_agents = sqlx::query_as!(
+        AgentDb,
+        r#"
+    SELECT
+        id,
+        name,
+        description,
+        price,
+        owner_id,
+        dataset_path,
+        status,
+        category as "category: AgentCategory",
+        created_at,
+        updated_at
+    FROM agents"#
+    )
+    .fetch_all(db)
+    .await?;
 
     for agent_db in db_agents {
         let dataset_csv_path = Path::new(UPLOAD_DIR).join(&agent_db.dataset_path);

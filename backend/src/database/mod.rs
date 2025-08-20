@@ -1,7 +1,6 @@
-use chrono::{DateTime, Utc};
 use color_eyre::Result;
 
-use crate::types::{AgentDb, UserDb};
+use crate::types::{AgentCategory, AgentDb, UserDb};
 
 pub async fn insert_user(
     tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -28,22 +27,23 @@ pub async fn insert_new_agent(
     price: f64,
     owner_id: i64,
     dataset_path: &str,
+    category: &AgentCategory,
 ) -> Result<AgentDb, sqlx::Error> {
-    let record = sqlx::query_as!(
-        AgentDb,
+    let record = sqlx::query_as::<_, AgentDb>(
         r#"
-        INSERT INTO agents (name, description, price, owner_id, dataset_path, status)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id, name, description, price, owner_id, dataset_path, status, created_at, updated_at
+        INSERT INTO agents (name, description, price, owner_id, dataset_path, category, status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING id, name, description, price, owner_id, dataset_path, category, status, created_at, updated_at
         "#,
-        name,
-        description,
-        price,
-        owner_id,
-        dataset_path,
-        "active"
     )
-    .fetch_one(&mut **tx) // fetch the row instead of execute
+    .bind(name)
+    .bind(description)
+    .bind(price)
+    .bind(owner_id)
+    .bind(dataset_path)
+    .bind(category.clone())
+    .bind("active")
+    .fetch_one(&mut **tx)
     .await?;
 
     Ok(record)
