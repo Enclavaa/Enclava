@@ -22,9 +22,9 @@ use crate::{
     state::AppState,
     types::{
         AgentCategory, AgentDb, AgentQueryParams, AgentQueryResult, AgentResponse, DatasetMetadata,
-        DatasetUploadRequest, DatasetUploadResponse, ErrorResponse, GetAgentsForPromptRequest,
-        GetAgentsForPromptResponse, GetResponseFromAgentsRequest, GetResponseFromAgentsResponse,
-        UserDb, DatasetStatsResponse,
+        DatasetStatsResponse, DatasetUploadRequest, DatasetUploadResponse, ErrorResponse,
+        GetAgentsForPromptRequest, GetAgentsForPromptResponse, GetResponseFromAgentsRequest,
+        GetResponseFromAgentsResponse, UserDb,
     },
 };
 
@@ -822,7 +822,8 @@ async fn get_datasets_stats_service(app_state: web::Data<AppState>) -> impl Resp
         r#"
         SELECT
             COUNT(*) as total_count,
-            COALESCE(SUM(price), 0.0) as total_price
+            COALESCE(SUM(price), 0.0) as total_price,
+            COALESCE(SUM(dataset_size), 0.0) as total_size
         FROM agents
         "#
     )
@@ -844,5 +845,6 @@ async fn get_datasets_stats_service(app_state: web::Data<AppState>) -> impl Resp
         success: true,
         total_count: stats.total_count.unwrap_or(0),
         total_price: stats.total_price.unwrap_or(0.0),
+        total_size: stats.total_size.unwrap_or(0.0),
     })
 }

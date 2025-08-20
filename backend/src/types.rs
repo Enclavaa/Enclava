@@ -29,6 +29,8 @@ pub struct DatasetStatsResponse {
     pub total_count: i64,
     /// Total price value of all datasets
     pub total_price: f64,
+    /// Total size of all datasets in bytes
+    pub total_size: f64,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -132,7 +134,7 @@ pub struct AgentQueryParams {
     /// Search agents by name (case-insensitive partial match)
     pub search: Option<String>,
     /// Filter agents by category
-    pub category: Option<AgentCategory>,
+    pub category: Option<String>,
     /// Filter agents by status
     pub status: Option<String>,
     /// Sort field: price, created_at, updated_at, name
@@ -165,8 +167,10 @@ pub enum AgentCategory {
     Healthcare,
     IoT,
     Gaming,
+    #[schema(rename = "Consumer Data")]
     #[sqlx(rename = "Consumer Data")]
     ConsumerData,
+    #[schema(rename = "Social Media")]
     #[sqlx(rename = "Social Media")]
     SocialMedia,
     Environmental,
