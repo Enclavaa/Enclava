@@ -11,13 +11,13 @@ use color_eyre::Result;
 use serde_json::json;
 
 use crate::{
-    config::UPLOAD_DIR,
+    config::{INIT_AGENT_MODEL, UPLOAD_DIR},
     state::AppState,
     types::{AgentCategory, AgentDb, UserDb},
 };
 
 pub async fn init_ai_agent_with_dataset(
-    user: &UserDb,
+    _user: &UserDb,
     agent_db: &AgentDb,
     dataset_csv_path: &PathBuf,
     app_state: &web::Data<AppState>,
@@ -25,26 +25,7 @@ pub async fn init_ai_agent_with_dataset(
     // Initialize the AI agent with the specified model and dataset
     let ai_model = &app_state.ai_model;
 
-    let agent_builder = ai_model.agent("gemini-2.5-flash");
-
-    let dataset_content = tokio::fs::read_to_string(dataset_csv_path).await?;
-
-    let agent_instruction = format!(
-        "You are an AI agent ({}) who is responsible for answering questions about the csv dataset added to you (it is your only context). Do not use any other knowledge source to answer questions. Return only the answer. The Dataset description is {}. The Dataset csv : {}",
-        agent_db.name, agent_db.description, dataset_content
-    );
-
-    let agent = agent_builder
-        .name(&agent_db.name)
-        .preamble(&agent_instruction)
-        .temperature(0.0)
-        .additional_params(json!(
-            {
-                "description": agent_db.description,
-                "owner_id": user.id
-            }
-        ))
-        .build();
+    let agent = init_agent(&dataset_csv_path, ai_model, &agent_db).await?;
 
     // Save the agent to the AppState tee_agents using its id
     app_state.tee_agents.insert(agent_db.id, agent);
@@ -80,29 +61,39 @@ pub async fn load_db_agents(
     for agent_db in db_agents {
         let dataset_csv_path = Path::new(UPLOAD_DIR).join(&agent_db.dataset_path);
 
-        let agent_builder = ai_model.agent("gemini-2.5-flash");
-
-        let dataset_content = tokio::fs::read_to_string(dataset_csv_path).await?;
-
-        let agent_instruction = format!(
-            "You are an AI agent ({}) who is responsible for answering questions about the csv dataset added to you (it is your only context). Do not use any other knowledge source to answer questions. Return only the answer. The Dataset description is {}. The Dataset csv : {}",
-            agent_db.name, agent_db.description, dataset_content
-        );
-
-        let agent = agent_builder
-            .name(&agent_db.name)
-            .preamble(&agent_instruction)
-            .temperature(0.0)
-            .additional_params(json!(
-                {
-                    "description": agent_db.description,
-                    "owner_id": agent_db.owner_id
-                }
-            ))
-            .build();
+        let agent = init_agent(&dataset_csv_path, ai_model, &agent_db).await?;
 
         tee_agents.insert(agent_db.id, agent);
     }
 
     Ok(tee_agents)
+}
+
+async fn init_agent(
+    dataset_csv_path: &PathBuf,
+    ai_model: &rig::providers::gemini::Client,
+    agent_db: &AgentDb,
+) -> Result<Agent<CompletionModel>> {
+    let agent_builder = ai_model.agent(INIT_AGENT_MODEL);
+
+    let dataset_content = tokio::fs::read_to_string(dataset_csv_path).await?;
+
+    let agent_instruction = format!(
+        "You are an AI agent ({}) who is responsible for answering questions about the csv dataset added to you (it is your only context). Do not use any other knowledge source to answer questions. Return only the answer. The Dataset description is {}. The Dataset csv : {}",
+        agent_db.name, agent_db.description, dataset_content
+    );
+
+    let agent = agent_builder
+        .name(&agent_db.name)
+        .preamble(&agent_instruction)
+        .temperature(0.0)
+        .additional_params(json!(
+            {
+                "description": agent_db.description,
+                "owner_id": agent_db.owner_id
+            }
+        ))
+        .build();
+
+    Ok(agent)
 }

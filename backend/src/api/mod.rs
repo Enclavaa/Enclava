@@ -16,7 +16,7 @@ use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
 use crate::{
-    config::UPLOAD_DIR,
+    config::{ROUTER_AGENT_MODEL, UPLOAD_DIR},
     database,
     helpers::{self, agents::init_ai_agent_with_dataset},
     state::AppState,
@@ -520,7 +520,7 @@ async fn get_agents_for_prompt_service(
 
     let model = gemini::Client::from_env();
     let ai = model
-        .agent(GEMINI_2_0_FLASH_LITE)
+        .agent(ROUTER_AGENT_MODEL)
         .preamble("You are an AI agent that your main and only task is to return the agents ids that can respond to the user question. You decide wether to return an agent id by using their available description, name and category. You' ll find this data in your context. Remeber to always only return the response as an array of agents id.If you can't find anyone just return an empty array. Exemple of response : [5, 9]. ")
         .temperature(0.0)
         .build();

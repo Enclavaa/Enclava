@@ -20,6 +20,8 @@ impl AppConfig {
     }
 }
 pub const UPLOAD_DIR: &str = "./uploads";
+pub const INIT_AGENT_MODEL: &str = "gemini-2.5-flash";
+pub const ROUTER_AGENT_MODEL: &str = "gemini-2.0-flash-lite";
 
 
 // Define a globally accessible static Config instance
