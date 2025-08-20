@@ -21,8 +21,8 @@ use crate::{
     helpers::{self, agents::init_ai_agent_with_dataset},
     state::AppState,
     types::{
-        AgentCategory, AgentDb, AgentResponse, DatasetMetadata, DatasetUploadRequest,
-        DatasetUploadResponse, ErrorResponse, GetAgentsForPromptRequest,
+        AgentCategory, AgentDb, AgentQueryParams, AgentQueryResult, AgentResponse, DatasetMetadata,
+        DatasetUploadRequest, DatasetUploadResponse, ErrorResponse, GetAgentsForPromptRequest,
         GetAgentsForPromptResponse, GetResponseFromAgentsRequest, GetResponseFromAgentsResponse,
         UserDb,
     },
@@ -50,52 +50,151 @@ async fn get_health_service() -> impl Responder {
     HttpResponse::Ok().body("ok")
 }
 
-
-
 #[utoipa::path(
-    get,    
+    get,
     path = "/agents",
+    params(
+        ("search" = Option<String>, Query, description = "Search agents by name (case-insensitive partial match)"),
+        ("category" = Option<AgentCategory>, Query, description = "Filter agents by category"),
+        ("status" = Option<String>, Query, description = "Filter agents by status"),
+        ("sort_by" = Option<String>, Query, description = "Sort field: price, created_at, updated_at, name"),
+        ("sort_order" = Option<String>, Query, description = "Sort order: asc or desc (default: asc)")
+    ),
     responses(
         (status = 200, description = "Agents fetched successfully", body = Vec<AgentDb>),
+        (status = 400, description = "Bad request - invalid parameters", body = ErrorResponse),
         (status = 500, description = "Internal server error", body = ErrorResponse)
     ),
     tag = "Agents"
 )]
 #[get("/agents")]
-async fn get_all_agents_service(app_state: web::Data<AppState>) -> impl Responder {
+async fn get_all_agents_service(
+    app_state: web::Data<AppState>,
+    query: web::Query<AgentQueryParams>,
+) -> impl Responder {
     let db = &app_state.db;
 
-    let agents = match sqlx::query_as!(
-        AgentDb,
-        r#"SELECT 
+    // Validate sort_by field
+    let sort_by = query.sort_by.as_deref().unwrap_or("created_at");
+    let valid_sort_fields = ["price", "created_at", "updated_at", "name"];
+    if !valid_sort_fields.contains(&sort_by) {
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            success: false,
+            message: format!(
+                "Invalid sort_by field: {}. Valid options: {}",
+                sort_by,
+                valid_sort_fields.join(", ")
+            ),
+            error_code: Some("INVALID_SORT_FIELD".to_string()),
+        });
+    }
+
+    // Validate sort_order
+    let sort_order = query.sort_order.as_deref().unwrap_or("asc");
+    let sort_order = match sort_order.to_lowercase().as_str() {
+        "asc" => "ASC",
+        "desc" => "DESC",
+        _ => {
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: "Invalid sort_order. Must be 'asc' or 'desc'".to_string(),
+                error_code: Some("INVALID_SORT_ORDER".to_string()),
+            });
+        }
+    };
+
+    // Start with base query
+    let mut sql = String::from(
+        r#"SELECT
         id,
         name,
         description,
         price,
         owner_id,
         dataset_path,
-        category as "category: AgentCategory",
+        category,
         status,
         created_at,
         updated_at
-     FROM agents"#
-    )
-    .fetch_all(db)
-    .await
-    {
-        Ok(agents) => agents,
+     FROM agents WHERE 1=1"#,
+    );
+
+    let mut param_count = 0;
+
+    // Add search condition
+    if let Some(search) = &query.search {
+        if !search.trim().is_empty() {
+            param_count += 1;
+            sql.push_str(&format!(" AND name ILIKE ${}", param_count));
+        }
+    }
+
+    // Add category filter
+    if let Some(category) = &query.category {
+        param_count += 1;
+        sql.push_str(&format!(" AND category::text = ${}", param_count));
+    }
+
+    // Add status filter
+    if let Some(status) = &query.status {
+        if !status.trim().is_empty() {
+            param_count += 1;
+            sql.push_str(&format!(" AND status = ${}", param_count));
+        }
+    }
+
+    // Add ORDER BY clause
+    sql.push_str(&format!(" ORDER BY {} {}", sort_by, sort_order));
+
+    // Execute the query
+    let mut query_builder = sqlx::query_as::<_, AgentQueryResult>(&sql);
+
+    if let Some(search) = &query.search {
+        if !search.trim().is_empty() {
+            query_builder = query_builder.bind(format!("%{}%", search.trim()));
+        }
+    }
+
+    if let Some(category) = &query.category {
+        query_builder = query_builder.bind(category.to_string());
+    }
+
+    if let Some(status) = &query.status {
+        if !status.trim().is_empty() {
+            query_builder = query_builder.bind(status.trim().to_string());
+        }
+    }
+
+    let query_results = match query_builder.fetch_all(db).await {
+        Ok(results) => results,
         Err(e) => {
             error!("Failed to get agents: {}", e);
             return HttpResponse::InternalServerError().json(ErrorResponse {
                 success: false,
-                message: "Failed to get agents from database".to_string(),
+                message: format!("Failed to get agents from database: {}", e),
                 error_code: Some("AGENT_FETCH_FAILED".to_string()),
             });
         }
     };
 
-    HttpResponse::Ok().json(agents)
+    // Convert to AgentDb format
+    let agents: Vec<AgentDb> = query_results
+        .into_iter()
+        .map(|result| AgentDb {
+            id: result.id,
+            name: result.name,
+            description: result.description,
+            price: result.price,
+            owner_id: result.owner_id,
+            dataset_path: result.dataset_path,
+            category: result.category,
+            status: result.status,
+            created_at: result.created_at,
+            updated_at: result.updated_at,
+        })
+        .collect();
 
+    HttpResponse::Ok().json(agents)
 }
 
 #[utoipa::path(
@@ -560,7 +659,10 @@ async fn get_agents_for_prompt_service(
         .map(|agent| {
             format!(
                 "{{\"id\":{},\"name\":\"{}\",\"description\":\"{}\", \"category\":\"{}\"}}",
-                agent.id, agent.name, agent.description, agent.category.to_string()
+                agent.id,
+                agent.name,
+                agent.description,
+                agent.category.to_string()
             )
         })
         .collect::<Vec<_>>()

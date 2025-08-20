@@ -116,6 +116,34 @@ pub struct AgentResponse {
     pub response: String,
 }
 
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct AgentQueryParams {
+    /// Search agents by name (case-insensitive partial match)
+    pub search: Option<String>,
+    /// Filter agents by category
+    pub category: Option<AgentCategory>,
+    /// Filter agents by status
+    pub status: Option<String>,
+    /// Sort field: price, created_at, updated_at, name
+    pub sort_by: Option<String>,
+    /// Sort order: asc or desc (default: asc)
+    pub sort_order: Option<String>,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+pub struct AgentQueryResult {
+    pub id: i64,
+    pub name: String,
+    pub description: String,
+    pub price: f64,
+    pub owner_id: i64,
+    pub dataset_path: String,
+    pub category: AgentCategory,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, ToSchema)]
 #[sqlx(type_name = "agent_category", rename_all = "PascalCase")]
 pub enum AgentCategory {
