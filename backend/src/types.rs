@@ -89,6 +89,7 @@ pub struct AgentDb {
     pub description: String,
     pub price: f64,
     pub owner_id: i64,
+    pub owner_address: String,
     pub dataset_path: String,
     pub category: AgentCategory,
     pub dataset_size: f64,
@@ -150,12 +151,14 @@ pub struct AgentQueryResult {
     pub description: String,
     pub price: f64,
     pub owner_id: i64,
+    pub address: String,
     pub dataset_path: String,
     pub category: AgentCategory,
     pub dataset_size: f64,
     pub status: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, ToSchema)]

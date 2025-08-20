@@ -106,18 +106,20 @@ async fn get_all_agents_service(
     // Start with base query
     let mut sql = String::from(
         r#"SELECT
-        id,
-        name,
-        description,
-        price,
-        owner_id,
-        dataset_path,
-        category,
-        dataset_size,
-        status,
-        created_at,
-        updated_at
-     FROM agents WHERE 1=1"#,
+        g.id,
+        g.name,
+        g.description,
+        g.price,
+        g.owner_id,
+        g.dataset_path,
+        g.category,
+        g.dataset_size,
+        g.status,
+        g.created_at,
+        g.updated_at, 
+        u.address
+     FROM agents g
+     JOIN users u ON g.owner_id = u.id WHERE 1=1"#,
     );
 
     let mut param_count = 0;
@@ -193,6 +195,7 @@ async fn get_all_agents_service(
             status: result.status,
             created_at: result.created_at,
             updated_at: result.updated_at,
+            owner_address: result.address,
         })
         .collect();
 
@@ -630,19 +633,21 @@ async fn get_agents_for_prompt_service(
 
     let agents = match sqlx::query_as!(
         AgentDb,
-        r#"SELECT 
-        id,
-        name,
-        description,
-        price,
-        owner_id,
-        dataset_path,
-        category as "category: AgentCategory",
-        dataset_size,
-        status,
-        created_at,
-        updated_at
-     FROM agents"#
+        r#"SELECT
+        g.id,
+        g.name,
+        g.description,
+        g.price,
+        g.owner_id,
+        g.dataset_path,
+        g.status,
+        g.category as "category: AgentCategory",
+        g.dataset_size,
+        g.created_at,
+        g.updated_at, 
+        u.address as "owner_address: String"
+    FROM agents g
+    JOIN users u ON g.owner_id = u.id"#
     )
     .fetch_all(db)
     .await

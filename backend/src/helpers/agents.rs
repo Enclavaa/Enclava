@@ -43,18 +43,21 @@ pub async fn load_db_agents(
         AgentDb,
         r#"
     SELECT
-        id,
-        name,
-        description,
-        price,
-        owner_id,
-        dataset_path,
-        status,
-        category as "category: AgentCategory",
-        dataset_size,
-        created_at,
-        updated_at
-    FROM agents"#
+        g.id,
+        g.name,
+        g.description,
+        g.price,
+        g.owner_id,
+        g.dataset_path,
+        g.status,
+        g.category as "category: AgentCategory",
+        g.dataset_size,
+        g.created_at,
+        g.updated_at, 
+        u.address as "owner_address: String"
+    FROM agents g
+    JOIN users u ON g.owner_id = u.id
+    "#
     )
     .fetch_all(db)
     .await?;

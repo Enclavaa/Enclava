@@ -32,9 +32,14 @@ pub async fn insert_new_agent(
 ) -> Result<AgentDb, sqlx::Error> {
     let record = sqlx::query_as::<_, AgentDb>(
         r#"
-        INSERT INTO agents (name, description, price, owner_id, dataset_path, category, status, dataset_size)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING id, name, description, price, owner_id, dataset_path, category, dataset_size, status, created_at, updated_at
+        WITH inserted AS (
+    INSERT INTO agents (name, description, price, owner_id, dataset_path, category, status, dataset_size)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING id, name, description, price, owner_id, dataset_path, category, dataset_size, status, created_at, updated_at
+)
+SELECT i.*, u.address AS owner_address
+FROM inserted i
+JOIN users u ON i.owner_id = u.id;
         "#,
     )
     .bind(name)
