@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use sqlx::prelude::Type;
 use utoipa::ToSchema;
 
 #[derive(Serialize, ToSchema)]
@@ -18,6 +19,18 @@ pub struct DatasetUploadResponse {
     pub row_count: Option<usize>,
     /// Dataset metadata
     pub metadata: Option<DatasetMetadata>,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct DatasetStatsResponse {
+    /// Success status
+    pub success: bool,
+    /// Total number of datasets
+    pub total_count: i64,
+    /// Total price value of all datasets
+    pub total_price: f64,
+    /// Total size of all datasets in bytes
+    pub total_size: f64,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -41,6 +54,8 @@ pub struct DatasetMetadata {
     pub description: String,
     /// Name of the dataset
     pub name: String,
+    /// Category of dataset
+    pub category: AgentCategory,
 }
 
 #[derive(ToSchema)]
@@ -57,6 +72,8 @@ pub struct DatasetUploadRequest {
     pub description: String,
     /// Name of the dataset
     pub name: String,
+    // Category of dataset
+    pub category: AgentCategory,
 }
 
 #[derive(Serialize, Deserialize, sqlx::FromRow, Debug)]
@@ -72,7 +89,10 @@ pub struct AgentDb {
     pub description: String,
     pub price: f64,
     pub owner_id: i64,
+    pub owner_address: String,
     pub dataset_path: String,
+    pub category: AgentCategory,
+    pub dataset_size: f64,
     pub status: String,
     #[schema(value_type = String, format = DateTime)]
     pub created_at: DateTime<Utc>,
@@ -108,4 +128,86 @@ pub struct AgentResponse {
     pub agent_id: i64,
     pub prompt: String,
     pub response: String,
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct AgentQueryParams {
+    /// Search agents by name (case-insensitive partial match)
+    pub search: Option<String>,
+    /// Filter agents by category
+    pub category: Option<String>,
+    /// Filter agents by status
+    pub status: Option<String>,
+    /// Sort field: price, created_at, updated_at, name
+    pub sort_by: Option<String>,
+    /// Sort order: asc or desc (default: asc)
+    pub sort_order: Option<String>,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+pub struct AgentQueryResult {
+    pub id: i64,
+    pub name: String,
+    pub description: String,
+    pub price: f64,
+    pub owner_id: i64,
+    pub address: String,
+    pub dataset_path: String,
+    pub category: AgentCategory,
+    pub dataset_size: f64,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, ToSchema)]
+#[sqlx(type_name = "agent_category", rename_all = "PascalCase")]
+pub enum AgentCategory {
+    Web3,
+    Financial,
+    Analytics,
+    Healthcare,
+    IoT,
+    Gaming,
+    #[schema(rename = "Consumer Data")]
+    #[sqlx(rename = "Consumer Data")]
+    ConsumerData,
+    #[schema(rename = "Social Media")]
+    #[sqlx(rename = "Social Media")]
+    SocialMedia,
+    Environmental,
+}
+
+impl ToString for AgentCategory {
+    fn to_string(&self) -> String {
+        match self {
+            AgentCategory::Web3 => "Web3".to_string(),
+            AgentCategory::Financial => "Financial".to_string(),
+            AgentCategory::Analytics => "Analytics".to_string(),
+            AgentCategory::Healthcare => "Healthcare".to_string(),
+            AgentCategory::IoT => "IoT".to_string(),
+            AgentCategory::Gaming => "Gaming".to_string(),
+            AgentCategory::ConsumerData => "Consumer Data".to_string(),
+            AgentCategory::SocialMedia => "Social Media".to_string(),
+            AgentCategory::Environmental => "Environmental".to_string(),
+        }
+    }
+}
+
+impl AgentCategory {
+    pub fn from_string(category: &str) -> Option<AgentCategory> {
+        match category {
+            "Web3" => Some(AgentCategory::Web3),
+            "Financial" => Some(AgentCategory::Financial),
+            "Analytics" => Some(AgentCategory::Analytics),
+            "Healthcare" => Some(AgentCategory::Healthcare),
+            "IoT" => Some(AgentCategory::IoT),
+            "Gaming" => Some(AgentCategory::Gaming),
+            "Consumer Data" => Some(AgentCategory::ConsumerData),
+            "Social Media" => Some(AgentCategory::SocialMedia),
+            "Environmental" => Some(AgentCategory::Environmental),
+            _ => None,
+        }
+    }
 }

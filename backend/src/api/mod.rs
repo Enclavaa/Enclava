@@ -16,14 +16,15 @@ use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
 use crate::{
-    config::UPLOAD_DIR,
+    config::{ROUTER_AGENT_MODEL, UPLOAD_DIR},
     database,
     helpers::{self, agents::init_ai_agent_with_dataset},
     state::AppState,
     types::{
-        AgentDb, AgentResponse, DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse,
-        ErrorResponse, GetAgentsForPromptRequest, GetAgentsForPromptResponse,
-        GetResponseFromAgentsRequest, GetResponseFromAgentsResponse, UserDb,
+        AgentCategory, AgentDb, AgentQueryParams, AgentQueryResult, AgentResponse, DatasetMetadata,
+        DatasetStatsResponse, DatasetUploadRequest, DatasetUploadResponse, ErrorResponse,
+        GetAgentsForPromptRequest, GetAgentsForPromptResponse, GetResponseFromAgentsRequest,
+        GetResponseFromAgentsResponse, UserDb,
     },
 };
 
@@ -47,6 +48,158 @@ async fn get_index_service() -> impl Responder {
 #[get("/health")]
 async fn get_health_service() -> impl Responder {
     HttpResponse::Ok().body("ok")
+}
+
+#[utoipa::path(
+    get,
+    path = "/agents",
+    params(
+        ("search" = Option<String>, Query, description = "Search agents by name (case-insensitive partial match)"),
+        ("category" = Option<AgentCategory>, Query, description = "Filter agents by category"),
+        ("status" = Option<String>, Query, description = "Filter agents by status"),
+        ("sort_by" = Option<String>, Query, description = "Sort field: price, created_at, updated_at, name"),
+        ("sort_order" = Option<String>, Query, description = "Sort order: asc or desc (default: asc)")
+    ),
+    responses(
+        (status = 200, description = "Agents fetched successfully", body = Vec<AgentDb>),
+        (status = 400, description = "Bad request - invalid parameters", body = ErrorResponse),
+        (status = 500, description = "Internal server error", body = ErrorResponse)
+    ),
+    tag = "Agents"
+)]
+#[get("/agents")]
+async fn get_all_agents_service(
+    app_state: web::Data<AppState>,
+    query: web::Query<AgentQueryParams>,
+) -> impl Responder {
+    let db = &app_state.db;
+
+    // Validate sort_by field
+    let sort_by = query.sort_by.as_deref().unwrap_or("created_at");
+    let valid_sort_fields = ["price", "created_at", "updated_at", "name"];
+    if !valid_sort_fields.contains(&sort_by) {
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            success: false,
+            message: format!(
+                "Invalid sort_by field: {}. Valid options: {}",
+                sort_by,
+                valid_sort_fields.join(", ")
+            ),
+            error_code: Some("INVALID_SORT_FIELD".to_string()),
+        });
+    }
+
+    // Validate sort_order
+    let sort_order = query.sort_order.as_deref().unwrap_or("asc");
+    let sort_order = match sort_order.to_lowercase().as_str() {
+        "asc" => "ASC",
+        "desc" => "DESC",
+        _ => {
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: "Invalid sort_order. Must be 'asc' or 'desc'".to_string(),
+                error_code: Some("INVALID_SORT_ORDER".to_string()),
+            });
+        }
+    };
+
+    // Start with base query
+    let mut sql = String::from(
+        r#"SELECT
+        g.id,
+        g.name,
+        g.description,
+        g.price,
+        g.owner_id,
+        g.dataset_path,
+        g.category,
+        g.dataset_size,
+        g.status,
+        g.created_at,
+        g.updated_at, 
+        u.address
+     FROM agents g
+     JOIN users u ON g.owner_id = u.id WHERE 1=1"#,
+    );
+
+    let mut param_count = 0;
+
+    // Add search condition
+    if let Some(search) = &query.search {
+        if !search.trim().is_empty() {
+            param_count += 1;
+            sql.push_str(&format!(" AND name ILIKE ${}", param_count));
+        }
+    }
+
+    // Add category filter
+    if let Some(category) = &query.category {
+        param_count += 1;
+        sql.push_str(&format!(" AND category::text = ${}", param_count));
+    }
+
+    // Add status filter
+    if let Some(status) = &query.status {
+        if !status.trim().is_empty() {
+            param_count += 1;
+            sql.push_str(&format!(" AND status = ${}", param_count));
+        }
+    }
+
+    // Add ORDER BY clause
+    sql.push_str(&format!(" ORDER BY {} {}", sort_by, sort_order));
+
+    // Execute the query
+    let mut query_builder = sqlx::query_as::<_, AgentQueryResult>(&sql);
+
+    if let Some(search) = &query.search {
+        if !search.trim().is_empty() {
+            query_builder = query_builder.bind(format!("%{}%", search.trim()));
+        }
+    }
+
+    if let Some(category) = &query.category {
+        query_builder = query_builder.bind(category.to_string());
+    }
+
+    if let Some(status) = &query.status {
+        if !status.trim().is_empty() {
+            query_builder = query_builder.bind(status.trim().to_string());
+        }
+    }
+
+    let query_results = match query_builder.fetch_all(db).await {
+        Ok(results) => results,
+        Err(e) => {
+            error!("Failed to get agents: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: format!("Failed to get agents from database: {}", e),
+                error_code: Some("AGENT_FETCH_FAILED".to_string()),
+            });
+        }
+    };
+
+    // Convert to AgentDb format
+    let agents: Vec<AgentDb> = query_results
+        .into_iter()
+        .map(|result| AgentDb {
+            id: result.id,
+            name: result.name,
+            description: result.description,
+            price: result.price,
+            owner_id: result.owner_id,
+            dataset_path: result.dataset_path,
+            category: result.category,
+            dataset_size: result.dataset_size,
+            status: result.status,
+            created_at: result.created_at,
+            updated_at: result.updated_at,
+            owner_address: result.address,
+        })
+        .collect();
+
+    HttpResponse::Ok().json(agents)
 }
 
 #[utoipa::path(
@@ -87,6 +240,7 @@ async fn upload_dataset_service(
     let mut dataset_price: Option<f64> = None;
     let mut description: Option<String> = None;
     let mut name: Option<String> = None;
+    let mut category: Option<AgentCategory> = None;
 
     while let Some(mut field) = payload.try_next().await.unwrap_or(None) {
         let field_name = field.name().unwrap_or("").to_string();
@@ -170,6 +324,25 @@ async fn upload_dataset_service(
                 }
                 name = Some(String::from_utf8_lossy(&field_bytes).to_string());
             }
+
+            "category" => {
+                let mut field_bytes = Vec::new();
+                while let Some(chunk) = field.try_next().await.unwrap_or(None) {
+                    field_bytes.extend_from_slice(&chunk);
+                }
+
+                category = match AgentCategory::from_string(&String::from_utf8_lossy(&field_bytes))
+                {
+                    Some(cat) => Some(cat),
+                    None => {
+                        return HttpResponse::BadRequest().json(ErrorResponse {
+                            success: false,
+                            message: "Invalid category.".to_string(),
+                            error_code: Some("INVALID_CATEGORY".to_string()),
+                        });
+                    }
+                };
+            }
             _ => {
                 // Skip unknown fields
                 while let Some(_chunk) = field.try_next().await.unwrap_or(None) {
@@ -236,12 +409,24 @@ async fn upload_dataset_service(
         }
     };
 
+    let category = match category {
+        Some(cat) => cat,
+        None => {
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: "category field is required".to_string(),
+                error_code: Some("MISSING_CATEGORY".to_string()),
+            });
+        }
+    };
+
     // Create metadata object
     let metadata = DatasetMetadata {
         user_address: user_address.clone(),
         dataset_price,
         description: description.clone(),
         name: name.clone(),
+        category: category.clone(),
     };
 
     // Validate and count CSV rows
@@ -369,6 +554,8 @@ async fn upload_dataset_service(
         dataset_price,
         user.id,
         &dataset_path,
+        &category,
+        file_size as f64,
     )
     .await
     {
@@ -432,7 +619,7 @@ Endpoint that its job is to get all the agents from database and using gemini ai
         (status = 200, description = "Agents fetched successfully", body = String),
         (status = 500, description = "Internal server error", body = ErrorResponse)
     ),
-    tag = "Chat"
+    tag = "Agents"
 )]
 #[post("/chat/agents")]
 async fn get_agents_for_prompt_service(
@@ -444,9 +631,26 @@ async fn get_agents_for_prompt_service(
     // Get the List of agents from database
     let db = &app_state.db;
 
-    let agents = match sqlx::query_as!(AgentDb, r#"SELECT * FROM agents"#)
-        .fetch_all(db)
-        .await
+    let agents = match sqlx::query_as!(
+        AgentDb,
+        r#"SELECT
+        g.id,
+        g.name,
+        g.description,
+        g.price,
+        g.owner_id,
+        g.dataset_path,
+        g.status,
+        g.category as "category: AgentCategory",
+        g.dataset_size,
+        g.created_at,
+        g.updated_at, 
+        u.address as "owner_address: String"
+    FROM agents g
+    JOIN users u ON g.owner_id = u.id"#
+    )
+    .fetch_all(db)
+    .await
     {
         Ok(agents) => agents,
         Err(e) => {
@@ -463,8 +667,11 @@ async fn get_agents_for_prompt_service(
         .iter()
         .map(|agent| {
             format!(
-                "{{\"id\":{},\"name\":\"{}\",\"description\":\"{}\"}}",
-                agent.id, agent.name, agent.description
+                "{{\"id\":{},\"name\":\"{}\",\"description\":\"{}\", \"category\":\"{}\"}}",
+                agent.id,
+                agent.name,
+                agent.description,
+                agent.category.to_string()
             )
         })
         .collect::<Vec<_>>()
@@ -472,8 +679,8 @@ async fn get_agents_for_prompt_service(
 
     let model = gemini::Client::from_env();
     let ai = model
-        .agent(GEMINI_2_0_FLASH_LITE)
-        .preamble("You are an AI agent that your main and only task is to return the agents ids that can respond to the user question. You decide wether to return an agent id by using their available description and name. You' ll find this data in your context. Remeber to always only return the response as an array of agents id.If you can't find anyone just return an empty array. Exemple of response : [5, 9]. ")
+        .agent(ROUTER_AGENT_MODEL)
+        .preamble("You are an AI agent that your main and only task is to return the agents ids that can respond to the user question. You decide wether to return an agent id by using their available description, name and category. You' ll find this data in your context. Remeber to always only return the response as an array of agents id.If you can't find anyone just return an empty array. Exemple of response : [5, 9]. ")
         .temperature(0.0)
         .build();
 
@@ -543,7 +750,7 @@ Endpoint that will use specifid agents ids by user and will return the response 
         (status = 200, description = "Agents responses fetched successfully", body = GetResponseFromAgentsResponse),
         (status = 500, description = "Internal server error", body = ErrorResponse)
     ),
-    tag = "Chat"
+    tag = "Agents"
 )]
 #[post("/chat/agents/answer")]
 async fn get_response_from_agents_service(
@@ -599,5 +806,50 @@ async fn get_response_from_agents_service(
     HttpResponse::Ok().json(GetResponseFromAgentsResponse {
         agent_responses,
         success: true,
+    })
+}
+
+#[utoipa::path(
+    get,
+    path = "/datasets/stats",
+    responses(
+        (status = 200, description = "Dataset statistics retrieved successfully", body = DatasetStatsResponse),
+        (status = 500, description = "Internal server error", body = ErrorResponse)
+    ),
+    tag = "Data Management"
+)]
+#[get("/datasets/stats")]
+async fn get_datasets_stats_service(app_state: web::Data<AppState>) -> impl Responder {
+    let db = &app_state.db;
+
+    // Query to get total count and total price of all datasets (agents)
+    let stats = match sqlx::query!(
+        r#"
+        SELECT
+            COUNT(*) as total_count,
+            COALESCE(SUM(price), 0.0) as total_price,
+            COALESCE(SUM(dataset_size), 0.0) as total_size
+        FROM agents
+        "#
+    )
+    .fetch_one(db)
+    .await
+    {
+        Ok(stats) => stats,
+        Err(e) => {
+            error!("Failed to get dataset statistics: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: "Failed to retrieve dataset statistics from database".to_string(),
+                error_code: Some("STATS_FETCH_FAILED".to_string()),
+            });
+        }
+    };
+
+    HttpResponse::Ok().json(DatasetStatsResponse {
+        success: true,
+        total_count: stats.total_count.unwrap_or(0),
+        total_price: stats.total_price.unwrap_or(0.0),
+        total_size: stats.total_size.unwrap_or(0.0),
     })
 }

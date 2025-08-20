@@ -6,6 +6,23 @@ CREATE TABLE users (
    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
 );
 
+
+-- Step 1.5: Create agent_category enum
+CREATE TYPE agent_category AS ENUM (
+   'Web3',
+   'Financial',
+   'Analytics',
+   'Healthcare',
+   'IoT',
+   'Gaming',
+   'Consumer Data',
+   'Social Media',
+   'Environmental'
+);
+
+
+-- ALTER TYPE agent_category ADD VALUE 'NewCategory';
+
 -- Step 2: Create agents table with FK to users
 CREATE TABLE agents (
    id BIGSERIAL PRIMARY KEY,
@@ -14,6 +31,8 @@ CREATE TABLE agents (
    description TEXT NOT NULL,
    price DOUBLE PRECISION NOT NULL,
    dataset_path TEXT NOT NULL,
+   category agent_category NOT NULL,
+   dataset_size DOUBLE PRECISION NOT NULL,
    status VARCHAR(50) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'paused', 'archived')),
    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
@@ -21,7 +40,6 @@ CREATE TABLE agents (
 );
 
 -- Step 3: Create function to auto-update updated_at
-
 CREATE OR REPLACE FUNCTION set_updated_at() RETURNS TRIGGER AS $$
 BEGIN
    NEW.updated_at = NOW();
@@ -48,3 +66,6 @@ CREATE INDEX idx_agents_created_at ON agents (created_at);
 
 -- Composite index: best for "all active agents of a user"
 CREATE INDEX idx_agents_owner_status ON agents (owner_id, status);
+
+-- Index for category-based queries
+CREATE INDEX idx_agents_category ON agents (category);
