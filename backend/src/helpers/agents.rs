@@ -79,8 +79,11 @@ async fn init_agent(
     let dataset_content = tokio::fs::read_to_string(dataset_csv_path).await?;
 
     let agent_instruction = format!(
-        "You are an AI agent ({}) who is responsible for answering questions about the csv dataset added to you (it is your only context). Do not use any other knowledge source to answer questions. Return only the answer. The Dataset description is {}. The Dataset csv : {}",
-        agent_db.name, agent_db.description, dataset_content
+        "You are an AI agent ({}) who is responsible for answering questions about the csv dataset added to you (it is your only context). Do not use any other knowledge source to answer questions. Return only the answer. PLease Do not reveal any personal information about specific user like its email, name, phone number, etc. The Dataset description is {}. The Dataset Category is {}. The Dataset csv : {}",
+        agent_db.name,
+        agent_db.description,
+        agent_db.category.to_string(),
+        dataset_content
     );
 
     let agent = agent_builder
