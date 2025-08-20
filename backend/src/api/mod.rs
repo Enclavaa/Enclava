@@ -24,7 +24,7 @@ use crate::{
         AgentCategory, AgentDb, AgentQueryParams, AgentQueryResult, AgentResponse, DatasetMetadata,
         DatasetUploadRequest, DatasetUploadResponse, ErrorResponse, GetAgentsForPromptRequest,
         GetAgentsForPromptResponse, GetResponseFromAgentsRequest, GetResponseFromAgentsResponse,
-        UserDb,
+        UserDb, DatasetStatsResponse,
     },
 };
 
@@ -797,5 +797,48 @@ async fn get_response_from_agents_service(
     HttpResponse::Ok().json(GetResponseFromAgentsResponse {
         agent_responses,
         success: true,
+    })
+}
+
+#[utoipa::path(
+    get,
+    path = "/datasets/stats",
+    responses(
+        (status = 200, description = "Dataset statistics retrieved successfully", body = DatasetStatsResponse),
+        (status = 500, description = "Internal server error", body = ErrorResponse)
+    ),
+    tag = "Data Management"
+)]
+#[get("/datasets/stats")]
+async fn get_datasets_stats_service(app_state: web::Data<AppState>) -> impl Responder {
+    let db = &app_state.db;
+
+    // Query to get total count and total price of all datasets (agents)
+    let stats = match sqlx::query!(
+        r#"
+        SELECT
+            COUNT(*) as total_count,
+            COALESCE(SUM(price), 0.0) as total_price
+        FROM agents
+        "#
+    )
+    .fetch_one(db)
+    .await
+    {
+        Ok(stats) => stats,
+        Err(e) => {
+            error!("Failed to get dataset statistics: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: "Failed to retrieve dataset statistics from database".to_string(),
+                error_code: Some("STATS_FETCH_FAILED".to_string()),
+            });
+        }
+    };
+
+    HttpResponse::Ok().json(DatasetStatsResponse {
+        success: true,
+        total_count: stats.total_count.unwrap_or(0),
+        total_price: stats.total_price.unwrap_or(0.0),
     })
 }

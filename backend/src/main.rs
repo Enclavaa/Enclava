@@ -69,6 +69,7 @@ async fn main() -> std::io::Result<()> {
             .service(api::get_all_agents_service)
             .service(api::get_agents_for_prompt_service)
             .service(api::get_response_from_agents_service)
+            .service(api::get_datasets_stats_service)
             .split_for_parts();
 
         app.service(SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-docs/openapi.json", app_api))

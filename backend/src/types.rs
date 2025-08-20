@@ -22,6 +22,16 @@ pub struct DatasetUploadResponse {
 }
 
 #[derive(Serialize, ToSchema)]
+pub struct DatasetStatsResponse {
+    /// Success status
+    pub success: bool,
+    /// Total number of datasets
+    pub total_count: i64,
+    /// Total price value of all datasets
+    pub total_price: f64,
+}
+
+#[derive(Serialize, ToSchema)]
 pub struct ErrorResponse {
     /// Error status
     pub success: bool,
