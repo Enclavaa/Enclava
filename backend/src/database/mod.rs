@@ -28,12 +28,13 @@ pub async fn insert_new_agent(
     owner_id: i64,
     dataset_path: &str,
     category: &AgentCategory,
+    file_size: f64,
 ) -> Result<AgentDb, sqlx::Error> {
     let record = sqlx::query_as::<_, AgentDb>(
         r#"
-        INSERT INTO agents (name, description, price, owner_id, dataset_path, category, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING id, name, description, price, owner_id, dataset_path, category, status, created_at, updated_at
+        INSERT INTO agents (name, description, price, owner_id, dataset_path, category, status, dataset_size)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id, name, description, price, owner_id, dataset_path, category, dataset_size, status, created_at, updated_at
         "#,
     )
     .bind(name)
@@ -43,6 +44,7 @@ pub async fn insert_new_agent(
     .bind(dataset_path)
     .bind(category.clone())
     .bind("active")
+    .bind(file_size)
     .fetch_one(&mut **tx)
     .await?;
 

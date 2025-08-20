@@ -89,6 +89,7 @@ pub struct AgentDb {
     pub owner_id: i64,
     pub dataset_path: String,
     pub category: AgentCategory,
+    pub dataset_size: f64,
     pub status: String,
     #[schema(value_type = String, format = DateTime)]
     pub created_at: DateTime<Utc>,
@@ -149,6 +150,7 @@ pub struct AgentQueryResult {
     pub owner_id: i64,
     pub dataset_path: String,
     pub category: AgentCategory,
+    pub dataset_size: f64,
     pub status: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

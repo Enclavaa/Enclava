@@ -113,6 +113,7 @@ async fn get_all_agents_service(
         owner_id,
         dataset_path,
         category,
+        dataset_size,
         status,
         created_at,
         updated_at
@@ -188,6 +189,7 @@ async fn get_all_agents_service(
             owner_id: result.owner_id,
             dataset_path: result.dataset_path,
             category: result.category,
+            dataset_size: result.dataset_size,
             status: result.status,
             created_at: result.created_at,
             updated_at: result.updated_at,
@@ -550,6 +552,7 @@ async fn upload_dataset_service(
         user.id,
         &dataset_path,
         &category,
+        file_size as f64,
     )
     .await
     {
@@ -635,6 +638,7 @@ async fn get_agents_for_prompt_service(
         owner_id,
         dataset_path,
         category as "category: AgentCategory",
+        dataset_size,
         status,
         created_at,
         updated_at

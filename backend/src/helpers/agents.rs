@@ -51,6 +51,7 @@ pub async fn load_db_agents(
         dataset_path,
         status,
         category as "category: AgentCategory",
+        dataset_size,
         created_at,
         updated_at
     FROM agents"#
