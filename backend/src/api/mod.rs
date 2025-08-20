@@ -3,12 +3,28 @@ use std::path::{Path, PathBuf};
 use actix_multipart::Multipart;
 use actix_web::{HttpResponse, Responder, get, post, web};
 use futures_util::TryStreamExt;
+use rig::{
+    client::ProviderClient,
+    completion::Prompt,
+    providers::gemini::{
+        self,
+        completion::{GEMINI_2_0_FLASH_LITE, GEMINI_2_5_FLASH_PREVIEW_05_20},
+    },
+};
 use tracing::{debug, error, info, warn};
 
 use uuid::Uuid;
 
 use crate::{
-    config::UPLOAD_DIR, database, helpers::{self, agents::init_ai_agent_with_dataset}, state::AppState, types::{DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse, ErrorResponse, UserDb}
+    config::UPLOAD_DIR,
+    database,
+    helpers::{self, agents::init_ai_agent_with_dataset},
+    state::AppState,
+    types::{
+        AgentDb, AgentResponse, DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse,
+        ErrorResponse, GetAgentsForPromptRequest, GetAgentsForPromptResponse,
+        GetResponseFromAgentsRequest, GetResponseFromAgentsResponse, UserDb,
+    },
 };
 
 #[utoipa::path(
@@ -55,7 +71,6 @@ async fn upload_dataset_service(
     mut payload: Multipart,
 ) -> impl Responder {
     const MAX_FILE_SIZE: usize = 10 * 1024 * 1024; // 10MB
-    
 
     // Create uploads directory if it doesn't exist
     if let Err(e) = tokio::fs::create_dir_all(UPLOAD_DIR).await {
@@ -399,5 +414,190 @@ async fn upload_dataset_service(
         file_size: Some(file_size),
         row_count: Some(row_count),
         metadata: Some(metadata),
+    })
+}
+
+/*
+Endpoint that its job is to get all the agents from database and using gemini ai(rig-core) that will return the ids of the agents that have the response for the prompt.
+*/
+#[utoipa::path(
+    post,
+    path = "/chat/agents",
+    request_body(
+        content = GetAgentsForPromptRequest,
+        content_type = "application/json",
+        description = "User prompt to get agents that can respond to it"
+    ),
+    responses(
+        (status = 200, description = "Agents fetched successfully", body = String),
+        (status = 500, description = "Internal server error", body = ErrorResponse)
+    ),
+    tag = "Chat"
+)]
+#[post("/chat/agents")]
+async fn get_agents_for_prompt_service(
+    app_state: web::Data<AppState>,
+    body: web::Json<GetAgentsForPromptRequest>,
+) -> HttpResponse {
+    let user_prompt = body.prompt.trim();
+
+    // Get the List of agents from database
+    let db = &app_state.db;
+
+    let agents = match sqlx::query_as!(AgentDb, r#"SELECT * FROM agents"#)
+        .fetch_all(db)
+        .await
+    {
+        Ok(agents) => agents,
+        Err(e) => {
+            error!("Failed to get agents: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: "Failed to get agents from database".to_string(),
+                error_code: Some("AGENT_FETCH_FAILED".to_string()),
+            });
+        }
+    };
+
+    let agents_vec_str: String = agents
+        .iter()
+        .map(|agent| {
+            format!(
+                "{{\"id\":{},\"name\":\"{}\",\"description\":\"{}\"}}",
+                agent.id, agent.name, agent.description
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(", ");
+
+    let model = gemini::Client::from_env();
+    let ai = model
+        .agent(GEMINI_2_0_FLASH_LITE)
+        .preamble("You are an AI agent that your main and only task is to return the agents ids that can respond to the user question. You decide wether to return an agent id by using their available description and name. You' ll find this data in your context. Remeber to always only return the response as an array of agents id.If you can't find anyone just return an empty array. Exemple of response : [5, 9]. ")
+        .temperature(0.0)
+        .build();
+
+    let prompt = format!(
+        "User question: {}. Please return the agents ids that can respond to this question. This is all the agents: [{}]",
+        user_prompt, agents_vec_str
+    );
+
+    let response = match ai.prompt(prompt).await {
+        Ok(response) => response,
+        Err(e) => {
+            error!("Failed to get AI response: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: format!("Failed to get AI response: {}", e),
+                error_code: Some("AI_RESPONSE_FAILED".to_string()),
+            });
+        }
+    };
+
+    debug!("AI response: {}", response);
+
+    // remove any markdown
+    let formatted_response = response.replace("```", "");
+
+    debug!("Formatted AI response: {}", formatted_response);
+
+    let agents_id_vec = match serde_json::from_str::<Vec<i64>>(&formatted_response) {
+        Ok(vec) => vec,
+        Err(e) => {
+            error!("Failed to parse AI response: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: format!("Failed to parse AI response: {}", e),
+                error_code: Some("AI_RESPONSE_PARSE_FAILED".to_string()),
+            });
+        }
+    };
+
+    if agents_id_vec.is_empty() {
+        return HttpResponse::Ok().json(GetAgentsForPromptResponse { agents: Vec::new() });
+    }
+
+    // Filter agents to only include those whose IDs are in agents_id_vec
+    let available_agents: Vec<AgentDb> = agents
+        .into_iter()
+        .filter(|agent| agents_id_vec.contains(&agent.id))
+        .collect();
+
+    HttpResponse::Ok().json(GetAgentsForPromptResponse {
+        agents: available_agents,
+    })
+}
+
+/*
+Endpoint that will use specifid agents ids by user and will return the response from the agents specified.
+*/
+#[utoipa::path(
+    post,
+    path = "/chat/agents/answer", 
+    request_body(
+        content = GetResponseFromAgentsRequest,
+        content_type = "application/json",
+        description = "User prompt and specified agents ids to get response from and tx hashes to verify payment."
+    ),
+    responses(
+        (status = 200, description = "Agents responses fetched successfully", body = GetResponseFromAgentsResponse),
+        (status = 500, description = "Internal server error", body = ErrorResponse)
+    ),
+    tag = "Chat"
+)]
+#[post("/chat/agents/answer")]
+async fn get_response_from_agents_service(
+    app_state: web::Data<AppState>,
+    body: web::Json<GetResponseFromAgentsRequest>,
+) -> HttpResponse {
+    let agent_ids = &body.agent_ids;
+    let prompt = &body.prompt;
+    let _tx_hashes = &body.tx_hashes;
+
+    let mut agent_responses = Vec::new();
+
+    // TODO: verify payment using tx hashes
+
+    // Get response from each agent specified
+    for agent_id in agent_ids {
+        let agent = app_state.tee_agents.get(agent_id);
+
+        if agent.is_none() {
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: format!("Agent with id {} not running", agent_id),
+                error_code: Some("AGENT_NOT_FOUND".to_string()),
+            });
+        }
+
+        let agent = agent.unwrap();
+
+        let response = match agent.prompt(prompt).await {
+            Ok(response) => response,
+            Err(e) => {
+                error!("Failed to get AI response: {}", e);
+                return HttpResponse::InternalServerError().json(ErrorResponse {
+                    success: false,
+                    message: format!(
+                        "Failed to get AI response from agent with id {} : {}",
+                        agent_id, e
+                    ),
+                    error_code: Some("AI_RESPONSE_FAILED".to_string()),
+                });
+            }
+        };
+
+        let agent_response = AgentResponse {
+            agent_id: *agent_id,
+            prompt: prompt.clone(),
+            response,
+        };
+
+        agent_responses.push(agent_response);
+    }
+
+    HttpResponse::Ok().json(GetResponseFromAgentsResponse {
+        agent_responses,
+        success: true,
     })
 }

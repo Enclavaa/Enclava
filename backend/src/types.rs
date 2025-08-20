@@ -65,7 +65,7 @@ pub struct UserDb {
     pub address: String,
 }
 
-#[derive(Debug, sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow, Serialize, Deserialize, Clone, ToSchema)]
 pub struct AgentDb {
     pub id: i64,
     pub name: String,
@@ -74,6 +74,38 @@ pub struct AgentDb {
     pub owner_id: i64,
     pub dataset_path: String,
     pub status: String,
+    #[schema(value_type = String, format = DateTime)]
     pub created_at: DateTime<Utc>,
+    #[schema(value_type = String, format = DateTime)]
     pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct GetAgentsForPromptRequest {
+    pub prompt: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct GetAgentsForPromptResponse {
+    pub agents: Vec<AgentDb>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct GetResponseFromAgentsRequest {
+    pub agent_ids: Vec<i64>,
+    pub prompt: String,
+    pub tx_hashes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct GetResponseFromAgentsResponse {
+    pub agent_responses: Vec<AgentResponse>,
+    pub success: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct AgentResponse {
+    pub agent_id: i64,
+    pub prompt: String,
+    pub response: String,
 }
