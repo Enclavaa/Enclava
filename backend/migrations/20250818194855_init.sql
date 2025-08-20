@@ -32,6 +32,7 @@ CREATE TABLE agents (
    price DOUBLE PRECISION NOT NULL,
    dataset_path TEXT NOT NULL,
    category agent_category NOT NULL,
+   dataset_size DOUBLE PRECISION NOT NULL,
    status VARCHAR(50) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'paused', 'archived')),
    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
