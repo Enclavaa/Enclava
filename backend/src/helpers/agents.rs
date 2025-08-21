@@ -4,16 +4,17 @@ use actix_web::web;
 use dashmap::DashMap;
 use rig::{
     agent::Agent,
-    providers::gemini::completion::{CompletionModel, GEMINI_2_5_FLASH_PREVIEW_05_20},
+    completion::Prompt,
+    providers::gemini::completion::{CompletionModel},
 };
 
-use color_eyre::Result;
+use color_eyre::{Result, eyre::Context};
 use serde_json::json;
 
 use crate::{
-    config::{INIT_AGENT_MODEL, UPLOAD_DIR},
+    config::{DATASET_DETAILS_GEN_AGENT_MODEL, INIT_AGENT_MODEL, UPLOAD_DIR},
     state::AppState,
-    types::{AgentCategory, AgentDb, UserDb},
+    types::{AgentCategory, AgentDb, DatasetAIDetails, UserDb},
 };
 
 pub async fn init_ai_agent_with_dataset(
@@ -71,6 +72,36 @@ pub async fn load_db_agents(
     }
 
     Ok(tee_agents)
+}
+
+pub async fn generate_dataset_details(
+    csv_text: &str,
+    ai_model: &rig::providers::gemini::Client,
+) -> Result<DatasetAIDetails> {
+    let agent = ai_model.agent(DATASET_DETAILS_GEN_AGENT_MODEL)
+    .preamble("You Are an AI agent that would generate the name, description and category of a sepcific csv dataset. The name should be short and sweet. The Description Should be not too long or too short. It should be very representative of the dataset cause other ai agents will rely on teh generated description to decide wether to use this dataset or not. The category should be one of the following: Web3, Financial, Analytics, Healthcare, IoT, Gaming, Consumer Data, Social Media, Environmental. Return the response as a json object with the following format: {{name: string, description: string, category: string}}. ")
+    .temperature(0.0)
+    .build();
+
+    let prompt = format!(
+        "Please generate the name, description and category of the following csv dataset. The csv dataset is the following: {}",
+        csv_text
+    );
+
+    let response = agent.prompt(prompt).await?;
+
+    // Remove any markdown from the response
+    let formatted_response = response.replace("```json", "").replace("```", "");
+
+    tracing::debug!(
+        "Formatted Generate Dataset Details AI response after removing markdown: {}",
+        formatted_response
+    );
+
+    let dataset_details: DatasetAIDetails = serde_json::from_str(&formatted_response)
+        .context("Failed to parse AI response as DatasetAIDetails")?;
+
+    Ok(dataset_details)
 }
 
 async fn init_agent(
