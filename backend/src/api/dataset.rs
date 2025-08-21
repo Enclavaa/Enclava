@@ -566,5 +566,6 @@ pub async fn upload_dataset_service(
         file_size: Some(file_size),
         row_count: Some(row_count),
         metadata: Some(metadata),
+        dataset_id: agent_db.id,
     })
 }

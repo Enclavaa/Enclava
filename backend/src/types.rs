@@ -22,6 +22,8 @@ pub struct DatasetUploadResponse {
     pub row_count: Option<usize>,
     /// Dataset metadata
     pub metadata: Option<DatasetMetadata>,
+    /// Created Dataset ID
+    pub dataset_id: i64,
 }
 
 #[derive(Serialize, ToSchema)]
