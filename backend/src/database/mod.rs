@@ -108,3 +108,29 @@ pub async fn get_agent_by_id_optional(
 
     Ok(agent)
 }
+
+pub async fn update_agent_with_nft_details(
+    tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    agent_id: i64,
+    nft_id: i64,
+    nft_tx: Option<String>,
+) -> Result<(), sqlx::Error> {
+    let update_result = sqlx::query!(
+        r#"
+        UPDATE agents
+        SET nft_id = $1, nft_tx = $2
+        WHERE id = $3
+        "#,
+        nft_id,
+        nft_tx,
+        agent_id
+    )
+    .execute(&mut **tx)
+    .await?;
+
+    if update_result.rows_affected() != 1 {
+        return Err(sqlx::Error::RowNotFound);
+    }
+
+    Ok(())
+}

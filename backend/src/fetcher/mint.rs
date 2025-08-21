@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use alloy::{
-    primitives::{Address, U256, keccak256},
+    primitives::{Address, FixedBytes, U256, keccak256},
     providers::{Provider, ProviderBuilder, WsConnect},
     rpc::types::Filter,
     sol,
@@ -11,13 +11,18 @@ use alloy::{
 use color_eyre::{Result, eyre::Context};
 use futures_util::StreamExt;
 
-use crate::config::{APP_CONFIG, ENCLAVA_CONTRACT_ADDRESS};
+use crate::{
+    config::{APP_CONFIG, ENCLAVA_CONTRACT_ADDRESS},
+    helpers::nft::handle_new_nft_mint,
+    types::WebAppState,
+};
 
 #[derive(Debug, Clone)]
 pub struct DatasetNFTMint {
     pub to: Address,
     pub token_id: U256,
     pub dataset_id: String,
+    pub tx_hash: Option<FixedBytes<32>>,
 }
 
 // Generate strongly typed bindings for your contract events
@@ -27,7 +32,7 @@ sol! {
     event AmountClaimed(uint256 indexed tokenId, address indexed owner, uint256 amount);
 }
 
-pub async fn mint_nft_fetcher() -> Result<()> {
+pub async fn mint_nft_fetcher(app_state: &WebAppState) -> Result<()> {
     tracing::info!("Starting mint nft fetcher...");
 
     // Create the provider.
@@ -68,12 +73,19 @@ pub async fn mint_nft_fetcher() -> Result<()> {
                 to: event.to,
                 token_id: event.tokenId,
                 dataset_id: event.datasetId,
+                tx_hash: log.transaction_hash,
             };
 
             tracing::info!("DatasetNFTMinted: {:?}", dataset_nft);
 
-            // TODO: Handle the event(by inserting teh payment details in the database)
-            continue;
+            // Open new thraed that will handle the event(by inserting teh payment details in the database)
+            let app_state = app_state.clone();
+
+            tokio::spawn(async move {
+                if let Err(e) = handle_new_nft_mint(&app_state, &dataset_nft).await {
+                    tracing::error!("Failed to handle new nft mint: {}", e);
+                }
+            });
         }
     }
 
