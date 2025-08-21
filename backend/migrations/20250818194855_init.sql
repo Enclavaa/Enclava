@@ -33,6 +33,8 @@ CREATE TABLE agents (
    dataset_path TEXT NOT NULL,
    category agent_category NOT NULL,
    dataset_size DOUBLE PRECISION NOT NULL,
+   nft_id BIGINT NULL,
+   nft_tx VARCHAR(255) NULL,
    status VARCHAR(50) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'paused', 'archived')),
    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),

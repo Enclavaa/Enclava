@@ -35,7 +35,7 @@ pub async fn insert_new_agent(
         WITH inserted AS (
     INSERT INTO agents (name, description, price, owner_id, dataset_path, category, status, dataset_size)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING id, name, description, price, owner_id, dataset_path, category, dataset_size, status, created_at, updated_at
+    RETURNING id, name, description, price, owner_id, dataset_path, category, dataset_size, status, created_at, updated_at, nft_id, nft_tx
 )
 SELECT i.*, u.address AS owner_address
 FROM inserted i
@@ -73,4 +73,38 @@ pub async fn get_user_by_address(
     .await?;
 
     Ok(user)
+}
+
+pub async fn get_agent_by_id_optional(
+    tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    id: i64,
+) -> Result<Option<AgentDb>, sqlx::Error> {
+    let agent = sqlx::query_as!(
+        AgentDb,
+        r#"
+        SELECT
+        g.id,
+        g.name,
+        g.description,
+        g.price,
+        g.owner_id,
+        g.dataset_path,
+        g.status,
+        g.category as "category: AgentCategory",
+        g.dataset_size,
+        g.created_at,
+        g.updated_at, 
+        g.nft_id,
+        g.nft_tx,
+        u.address as "owner_address: String"
+    FROM agents g
+    JOIN users u ON g.owner_id = u.id
+    WHERE g.id = $1
+        "#,
+        id
+    )
+    .fetch_optional(&mut **tx)
+    .await?;
+
+    Ok(agent)
 }

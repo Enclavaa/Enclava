@@ -1,7 +1,10 @@
+use actix_web::web;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::Type;
 use utoipa::ToSchema;
+
+use crate::state::AppState;
 
 #[derive(Serialize, ToSchema)]
 pub struct DatasetUploadResponse {
@@ -121,6 +124,8 @@ pub struct AgentDb {
     pub dataset_path: String,
     pub category: AgentCategory,
     pub dataset_size: f64,
+    pub nft_id: Option<i64>,
+    pub nft_tx: Option<String>,
     pub status: String,
     #[schema(value_type = String, format = DateTime)]
     pub created_at: DateTime<Utc>,
@@ -186,6 +191,8 @@ pub struct AgentQueryResult {
     pub status: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub nft_id: Option<i64>,
+    pub nft_tx: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, ToSchema)]
@@ -238,3 +245,5 @@ impl AgentCategory {
         }
     }
 }
+
+pub type WebAppState = web::Data<AppState>;

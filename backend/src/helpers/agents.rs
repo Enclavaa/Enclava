@@ -2,11 +2,7 @@ use std::path::{Path, PathBuf};
 
 use actix_web::web;
 use dashmap::DashMap;
-use rig::{
-    agent::Agent,
-    completion::Prompt,
-    providers::gemini::completion::{CompletionModel},
-};
+use rig::{agent::Agent, completion::Prompt, providers::gemini::completion::CompletionModel};
 
 use color_eyre::{Result, eyre::Context};
 use serde_json::json;
@@ -54,7 +50,9 @@ pub async fn load_db_agents(
         g.category as "category: AgentCategory",
         g.dataset_size,
         g.created_at,
-        g.updated_at, 
+        g.updated_at,
+        g.nft_id,
+        g.nft_tx, 
         u.address as "owner_address: String"
     FROM agents g
     JOIN users u ON g.owner_id = u.id
