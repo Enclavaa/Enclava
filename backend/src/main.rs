@@ -66,6 +66,7 @@ async fn main() -> std::io::Result<()> {
             .service(api::get_index_service)
             .service(api::get_health_service)
             .service(api::dataset::upload_dataset_service)
+            .service(api::dataset::generate_dataset_details_service)
             .service(api::get_all_agents_service)
             .service(api::get_agents_for_prompt_service)
             .service(api::get_response_from_agents_service)

@@ -1,4 +1,4 @@
-use std::path::{Path};
+use std::path::Path;
 
 use actix_multipart::Multipart;
 use actix_web::{HttpResponse, Responder, post, web};
@@ -8,15 +8,164 @@ use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
 use crate::{
-    config::{UPLOAD_DIR},
+    config::UPLOAD_DIR,
     database,
     helpers::{self, agents::init_ai_agent_with_dataset},
     state::AppState,
     types::{
-        AgentCategory, DatasetMetadata,
-       DatasetUploadRequest, DatasetUploadResponse, ErrorResponse, UserDb,
+        AgentCategory, DatasetDetailsGenerateRequest, DatasetDetailsGenerateResponse,
+        DatasetMetadata, DatasetUploadRequest, DatasetUploadResponse, ErrorResponse, UserDb,
     },
 };
+
+#[utoipa::path(
+    post,
+    path = "/dataset/details/generate",
+    request_body(
+        content = DatasetDetailsGenerateRequest,
+        content_type = "multipart/form-data",
+        description = "Gnerate dataset details using AI(name, description, category). Send the CSV file as 'file'."
+    ),
+    responses(
+        (status = 200, description = "Dataset Details generated successfully", body = DatasetDetailsGenerateResponse),
+        (status = 400, description = "Bad request - invalid file or format", body = ErrorResponse),
+        (status = 413, description = "File too large", body = ErrorResponse),
+        (status = 500, description = "Internal server error", body = ErrorResponse)
+    ),
+    tag = "Data Management"
+)]
+#[post("/dataset/details/generate")]
+async fn generate_dataset_details_service(
+    app_state: web::Data<AppState>,
+    mut payload: Multipart,
+) -> impl Responder {
+    const MAX_FILE_SIZE: usize = 10 * 1024 * 1024; // 10MB
+
+    // Create uploads directory if it doesn't exist
+    if let Err(e) = tokio::fs::create_dir_all(UPLOAD_DIR).await {
+        error!("Failed to create upload directory: {}", e);
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            success: false,
+            message: "Failed to create upload directory".to_string(),
+            error_code: Some("DIRECTORY_CREATION_FAILED".to_string()),
+        });
+    }
+
+    let mut file_data: Option<(String, Vec<u8>, u64)> = None; // (filename, data, size)
+
+    while let Some(mut field) = payload.try_next().await.unwrap_or(None) {
+        let field_name = field.name().unwrap_or("").to_string();
+
+        match field_name.as_str() {
+            "file" => {
+                let filename = field
+                    .content_disposition()
+                    .and_then(|cd| cd.get_filename().map(|s| s.to_string()));
+
+                if let Some(filename) = filename {
+                    // Validate file extension
+                    if !filename.to_lowercase().ends_with(".csv") {
+                        return HttpResponse::BadRequest().json(ErrorResponse {
+                            success: false,
+                            message: "Only CSV files are allowed".to_string(),
+                            error_code: Some("INVALID_FILE_TYPE".to_string()),
+                        });
+                    }
+
+                    let mut file_size = 0u64;
+                    let mut file_bytes = Vec::new();
+
+                    // Read file data
+                    while let Some(chunk) = field.try_next().await.unwrap_or(None) {
+                        file_size += chunk.len() as u64;
+
+                        // Check file size limit
+                        if file_size > MAX_FILE_SIZE as u64 {
+                            return HttpResponse::PayloadTooLarge().json(ErrorResponse {
+                                success: false,
+                                message: format!(
+                                    "File too large. Maximum size is {} MB",
+                                    MAX_FILE_SIZE / (1024 * 1024)
+                                ),
+                                error_code: Some("FILE_TOO_LARGE".to_string()),
+                            });
+                        }
+
+                        file_bytes.extend_from_slice(&chunk);
+                    }
+
+                    file_data = Some((filename, file_bytes, file_size));
+                }
+            }
+            _ => {
+                // Skip unknown fields
+                while let Some(_chunk) = field.try_next().await.unwrap_or(None) {
+                    // Just consume the field
+                }
+            }
+        }
+    }
+
+    // Validate that both file and metadata were provided
+    let (filename, file_bytes, file_size) = match file_data {
+        Some(data) => data,
+        None => {
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: "No file found in the request".to_string(),
+                error_code: Some("NO_FILE_FOUND".to_string()),
+            });
+        }
+    };
+
+    // Validate and count CSV rows
+    let _row_count = match helpers::csv::validate_and_count_csv(&file_bytes) {
+        Ok(count) => count,
+        Err(e) => {
+            warn!("CSV validation failed: {}", e);
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: format!("Invalid CSV format: {}", e),
+                error_code: Some("INVALID_CSV_FORMAT".to_string()),
+            });
+        }
+    };
+
+    // Convert the Csv to plain Text
+    let csv_text = match helpers::csv::csv_bytes_to_string(&file_bytes).await {
+        Ok(text) => text,
+        Err(e) => {
+            warn!("CSV conversion failed: {}", e);
+            return HttpResponse::BadRequest().json(ErrorResponse {
+                success: false,
+                message: format!("Failed to convert CSV to string: {}", e),
+                error_code: Some("CSV_CONVERSION_FAILED".to_string()),
+            });
+        }
+    };
+
+    // Generate teh dataset details using AI
+    let dataset_details =
+        match helpers::agents::generate_dataset_details(&csv_text, &app_state.ai_model).await {
+            Ok(details) => details,
+            Err(e) => {
+                error!("Failed to generate dataset details: {}", e);
+                return HttpResponse::InternalServerError().json(ErrorResponse {
+                    success: false,
+                    message: format!("Failed to generate dataset details: {}", e),
+                    error_code: Some("DATASET_DETAILS_GENERATION_FAILED".to_string()),
+                });
+            }
+        };
+
+    HttpResponse::Ok().json(DatasetDetailsGenerateResponse {
+        success: true,
+        message: "Dataset details generated successfully".to_string(),
+        name: dataset_details.name,
+        description: dataset_details.description,
+        category: dataset_details.category,
+    })
+}
 
 #[utoipa::path(
     post,

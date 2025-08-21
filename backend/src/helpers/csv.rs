@@ -25,3 +25,9 @@ pub fn validate_and_count_csv(data: &[u8]) -> Result<usize> {
 
     Ok(row_count)
 }
+
+pub async fn csv_bytes_to_string(data: &[u8]) -> Result<String> {
+    let content = String::from_utf8(data.to_vec())?;
+
+    Ok(content)
+}

@@ -76,6 +76,34 @@ pub struct DatasetUploadRequest {
     pub category: AgentCategory,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct DatasetDetailsGenerateRequest {
+    /// CSV file upload
+    #[schema(value_type = String, format = Binary)]
+    pub file: Vec<u8>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct DatasetDetailsGenerateResponse {
+    /// Success status of the request
+    pub success: bool,
+    /// Message describing the result
+    pub message: String,
+    /// Dataset name
+    pub name: String,
+    /// Dataset description
+    pub description: String,
+    /// Dataset category
+    pub category: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct DatasetAIDetails {
+    pub name: String,
+    pub description: String,
+    pub category: String,
+}
+
 #[derive(Serialize, Deserialize, sqlx::FromRow, Debug)]
 pub struct UserDb {
     pub id: i64,
@@ -158,7 +186,6 @@ pub struct AgentQueryResult {
     pub status: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
-
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type, ToSchema)]
