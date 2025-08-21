@@ -65,7 +65,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::clone(&app_state))
             .service(api::get_index_service)
             .service(api::get_health_service)
-            .service(api::upload_dataset_service)
+            .service(api::dataset::upload_dataset_service)
             .service(api::get_all_agents_service)
             .service(api::get_agents_for_prompt_service)
             .service(api::get_response_from_agents_service)
