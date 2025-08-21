@@ -49,7 +49,7 @@ contract EnclavaPayments is ERC721, ERC721Enumerable, Ownable, ReentrancyGuard {
     function safeMint(
         address to,
         string memory datasetId
-    ) public onlyOwner returns (uint256) {
+    ) public returns (uint256) {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
 

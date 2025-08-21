@@ -73,12 +73,6 @@ contract EnclavaPaymentsTest is Test {
         assertGt(metadata.mintTimestamp, 0);
     }
 
-    function test_SafeMint_OnlyOwner() public {
-        vm.prank(user1);
-        vm.expectRevert();
-        enclavaPayments.safeMint(user1, "dataset_123");
-    }
-
     function test_MultipleMints() public {
         vm.startPrank(owner);
 
