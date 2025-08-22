@@ -4,6 +4,7 @@ mod database;
 mod fetcher;
 mod helpers;
 mod state;
+mod tee;
 mod types;
 
 use actix_cors::Cors;

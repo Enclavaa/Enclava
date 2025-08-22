@@ -3,6 +3,7 @@ pub mod dataset;
 use crate::{
     config::ROUTER_AGENT_MODEL,
     state::AppState,
+    tee,
     types::{
         AgentCategory, AgentDb, AgentQueryParams, AgentQueryResult, AgentResponse,
         DatasetStatsResponse, ErrorResponse, GetAgentsForPromptRequest, GetAgentsForPromptResponse,
@@ -360,6 +361,8 @@ async fn get_response_from_agents_service(
 
     // Get response from each agent specified
     for agent_id in agent_ids {
+        tee::call_tee_ai_agent(&app_state, *agent_id, &prompt).await;
+
         let agent = app_state.tee_agents.get(agent_id);
 
         if agent.is_none() {
