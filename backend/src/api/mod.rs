@@ -1,7 +1,8 @@
 pub mod dataset;
 
 use crate::{
-    config::ROUTER_AGENT_MODEL,
+    config::{MAX_ALLOWED_SELECTED_AGENTS, ROUTER_AGENT_MODEL},
+    helpers,
     state::AppState,
     tee,
     types::{
@@ -353,11 +354,66 @@ async fn get_response_from_agents_service(
 ) -> HttpResponse {
     let agent_ids = &body.agent_ids;
     let prompt = &body.prompt;
-    let _tx_hashes = &body.tx_hashes;
+    let tx_hash = &body.tx_hash;
+
+    if tx_hash.is_empty() {
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            success: false,
+            message: "No tx hash specified".to_string(),
+            error_code: Some("NO_TX_HASH_SPECIFIED".to_string()),
+        });
+    }
+
+    if prompt.is_empty() {
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            success: false,
+            message: "No prompt specified".to_string(),
+            error_code: Some("NO_PROMPT_SPECIFIED".to_string()),
+        });
+    }
+
+    if agent_ids.is_empty() {
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            success: false,
+            message: "No agents specified".to_string(),
+            error_code: Some("NO_AGENTS_SPECIFIED".to_string()),
+        });
+    }
+
+    if agent_ids.len() > MAX_ALLOWED_SELECTED_AGENTS {
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            success: false,
+            message: "Too many agents specified".to_string(),
+            error_code: Some("TOO_MANY_AGENTS_SPECIFIED".to_string()),
+        });
+    }
 
     let mut agent_responses = Vec::new();
 
-    // TODO: verify payment using tx hashes
+    // Verify payment using tx hash
+    let pay_sucess = match helpers::agents::verif_selected_agents_payment(
+        &app_state, agent_ids, tx_hash,
+    )
+    .await
+    {
+        Ok(success) => success,
+        Err(e) => {
+            error!("Failed to verify payment: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: format!("Failed to verify payment: {}", e),
+                error_code: Some("PAYMENT_VERIFICATION_FAILED".to_string()),
+            });
+        }
+    };
+
+    if !pay_sucess {
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            success: false,
+            message: "Payment verification failed".to_string(),
+            error_code: Some("PAYMENT_VERIFICATION_FAILED".to_string()),
+        });
+    }
 
     // Get response from each agent specified
     for agent_id in agent_ids {

@@ -102,6 +102,14 @@ pub async fn generate_dataset_details(
     Ok(dataset_details)
 }
 
+pub async fn verif_selected_agents_payment(
+    app_state: &web::Data<AppState>,
+    agent_ids: &Vec<i64>,
+    tx_hash: &str,
+) -> Result<bool> {
+    Ok(true)
+}
+
 async fn init_agent(
     dataset_csv_path: &PathBuf,
     ai_model: &rig::providers::gemini::Client,
