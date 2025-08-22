@@ -249,3 +249,10 @@ impl AgentCategory {
 }
 
 pub type WebAppState = web::Data<AppState>;
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct ProfileResponse {
+    pub sucess: bool,
+    pub message: String,
+    pub agents: Vec<AgentDb>,
+}

@@ -1,4 +1,5 @@
 pub mod dataset;
+pub mod profile;
 
 use crate::{
     config::{MAX_ALLOWED_SELECTED_AGENTS, ROUTER_AGENT_MODEL},
