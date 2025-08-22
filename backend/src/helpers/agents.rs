@@ -1,6 +1,12 @@
 use std::path::{Path, PathBuf};
 
 use actix_web::web;
+use alloy::{
+    primitives::utils::format_units,
+    providers::{Provider, ProviderBuilder},
+    sol,
+    sol_types::SolEvent,
+};
 use dashmap::DashMap;
 use rig::{agent::Agent, completion::Prompt, providers::gemini::completion::CompletionModel};
 
@@ -8,10 +14,18 @@ use color_eyre::{Result, eyre::Context};
 use serde_json::json;
 
 use crate::{
-    config::{DATASET_DETAILS_GEN_AGENT_MODEL, INIT_AGENT_MODEL, UPLOAD_DIR},
+    config::{
+        APP_CONFIG, DATASET_DETAILS_GEN_AGENT_MODEL, ENCLAVA_CONTRACT_ADDRESS, INIT_AGENT_MODEL,
+        UPLOAD_DIR,
+    },
+    database,
     state::AppState,
     types::{AgentCategory, AgentDb, DatasetAIDetails, UserDb},
 };
+
+sol! {
+    event DatasetUsed(uint256 indexed tokenId, address indexed user, uint256 amount);
+}
 
 pub async fn init_ai_agent_with_dataset(
     _user: &UserDb,
@@ -107,6 +121,100 @@ pub async fn verif_selected_agents_payment(
     agent_ids: &Vec<i64>,
     tx_hash: &str,
 ) -> Result<bool> {
+    // Get all agents from the database
+    let db = &app_state.db;
+
+    let agents_db = database::get_agents_by_ids(db, agent_ids).await?;
+
+    let total_price_to_pay = agents_db.iter().fold(0.0, |acc, agent| acc + agent.price);
+
+    tracing::debug!("Total price to pay By Used Agents: {}", total_price_to_pay);
+
+    let rpc_url = &APP_CONFIG.alchemy_rpc_url;
+
+    let provider = ProviderBuilder::new().connect_http(rpc_url.parse()?);
+
+    let tx_receipt = provider.get_transaction_receipt(tx_hash.parse()?).await?;
+
+    if tx_receipt.is_none() {
+        tracing::error!("Transaction receipt not found for tx hash: {}", tx_hash);
+        return Ok(false);
+    }
+
+    let tx_receipt = tx_receipt.unwrap();
+
+    // Check if the tx is sucess
+    let tx_success = tx_receipt.status();
+
+    if !tx_success {
+        tracing::error!("Transaction of {} is not successful", tx_hash);
+        return Ok(false);
+    }
+
+    // Chck if the tx is for the correct enclava smart contract
+    let tx_contract = tx_receipt.to;
+
+    if tx_contract != Some(ENCLAVA_CONTRACT_ADDRESS.parse()?) {
+        tracing::error!(
+            "Transaction of {} is not for the correct contract. Expected: {} Found: {:?}",
+            tx_hash,
+            ENCLAVA_CONTRACT_ADDRESS,
+            tx_contract
+        );
+        return Ok(false);
+    }
+
+    // Get the tx logs and decode them
+    let tx_logs = tx_receipt.logs();
+
+    let mut total_amount_paid = 0.0;
+
+    for log in tx_logs {
+        let log_data = log.data();
+
+        if let Ok(decoded_log) = DatasetUsed::decode_log_data(log_data) {
+            let amount_paid_u256 = decoded_log.amount;
+            let token_nft_id = decoded_log.tokenId;
+
+            let amount_paid: f64 = format_units(amount_paid_u256, 18)?.parse()?;
+            let nft_id: i64 = token_nft_id.to_string().parse()?;
+
+            tracing::debug!("Amount paid: {}", amount_paid);
+            tracing::debug!("NFT ID: {}", nft_id);
+
+            // Get the agent that has the nft_id
+            let agent = agents_db.iter().find(|agent| agent.nft_id == Some(nft_id));
+
+            if agent.is_none() {
+                tracing::error!("Agent with nft_id {} not found", nft_id);
+                return Ok(false);
+            }
+
+            let agent = agent.unwrap();
+
+            if agent.price > amount_paid {
+                tracing::error!(
+                    "Agent {} price is {} but only {} was paid",
+                    agent.id,
+                    agent.price,
+                    amount_paid
+                );
+                return Ok(false);
+            }
+
+            total_amount_paid += amount_paid;
+        }
+    }
+
+    if total_amount_paid < total_price_to_pay {
+        tracing::error!(
+            "Total amount paid {} is less than total price to pay {}",
+            total_amount_paid,
+            total_price_to_pay
+        );
+        return Ok(false);
+    }
+
     Ok(true)
 }
 
