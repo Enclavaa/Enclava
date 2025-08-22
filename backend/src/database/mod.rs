@@ -134,3 +134,37 @@ pub async fn update_agent_with_nft_details(
 
     Ok(())
 }
+
+pub async fn get_agents_by_ids(
+    db: &sqlx::Pool<sqlx::Postgres>,
+    agent_ids: &Vec<i64>,
+) -> Result<Vec<AgentDb>, sqlx::Error> {
+    let agents = sqlx::query_as!(
+        AgentDb,
+        r#"
+        SELECT
+        g.id,
+        g.name,
+        g.description,
+        g.price,
+        g.owner_id,
+        g.dataset_path,
+        g.status,
+        g.category as "category: AgentCategory",
+        g.dataset_size,
+        g.created_at,
+        g.updated_at, 
+        g.nft_id,
+        g.nft_tx,
+        u.address as "owner_address: String"
+    FROM agents g
+    JOIN users u ON g.owner_id = u.id
+    WHERE g.id = ANY($1)
+        "#,
+        agent_ids
+    )
+    .fetch_all(db)
+    .await?;
+
+    Ok(agents)
+}

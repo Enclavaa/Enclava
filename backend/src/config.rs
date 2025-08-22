@@ -32,6 +32,7 @@ pub const INIT_AGENT_MODEL: &str = "gemini-2.5-flash";
 pub const ROUTER_AGENT_MODEL: &str = "gemini-2.0-flash-lite";
 pub const DATASET_DETAILS_GEN_AGENT_MODEL: &str = "gemini-2.0-flash-lite";
 pub const ENCLAVA_CONTRACT_ADDRESS: &str = "0x015C507e3E79D5049b003C3bE5b2E208A4Bb7e56";
+pub const MAX_ALLOWED_SELECTED_AGENTS: usize = 3;
 
 // Define a globally accessible static Config instance
 pub static APP_CONFIG: Lazy<AppConfig> = Lazy::new(AppConfig::load);

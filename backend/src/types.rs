@@ -149,7 +149,7 @@ pub struct GetAgentsForPromptResponse {
 pub struct GetResponseFromAgentsRequest {
     pub agent_ids: Vec<i64>,
     pub prompt: String,
-    pub tx_hashes: Vec<String>,
+    pub tx_hash: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
