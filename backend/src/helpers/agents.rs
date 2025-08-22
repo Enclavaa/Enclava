@@ -121,6 +121,12 @@ pub async fn verif_selected_agents_payment(
     agent_ids: &Vec<i64>,
     tx_hash: &str,
 ) -> Result<bool> {
+    // Check if the tx hash is already handled
+    if app_state.handled_txs.contains(tx_hash) {
+        tracing::error!("Transaction hash {} already handled", tx_hash);
+        return Ok(false);
+    }
+
     // Get all agents from the database
     let db = &app_state.db;
 
@@ -214,6 +220,9 @@ pub async fn verif_selected_agents_payment(
         );
         return Ok(false);
     }
+
+    // Add the transaction hash to the app_state for future reference
+    app_state.handled_txs.insert(tx_hash.to_string());
 
     Ok(true)
 }

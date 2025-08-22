@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use dashmap::DashMap;
+use dashmap::{DashMap, DashSet};
 use rig::{agent::Agent, client::ProviderClient, providers};
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 
@@ -12,6 +12,7 @@ pub struct AppState {
     pub db: Pool<Postgres>,
     pub ai_model: providers::gemini::Client,
     pub tee_agents: DashMap<i64, Agent<providers::gemini::completion::CompletionModel>>,
+    pub handled_txs: DashSet<String>,
 }
 
 impl AppState {
@@ -39,10 +40,13 @@ impl AppState {
 
         info!("{} Tee agents loaded successfully", tee_agents.len());
 
+        let handled_txs = DashSet::new();
+
         Self {
             db,
             ai_model,
             tee_agents,
+            handled_txs,
         }
     }
 }
