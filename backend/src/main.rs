@@ -1,6 +1,7 @@
 mod api;
 mod config;
 mod database;
+mod fetcher;
 mod helpers;
 mod state;
 mod types;
@@ -43,6 +44,17 @@ async fn main() -> std::io::Result<()> {
 
     // Initialize a new application state
     let app_state = web::Data::new(AppState::new().await);
+
+    // Starting all enclava fetchers
+    fetcher::open_all_logs_fetcher(&app_state)
+        .await
+        .map_err(|e| {
+            error!("Failed to start fetchers: {:?}", e);
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Enclava Fetcher error: {:?}", e),
+            )
+        })?;
 
     let port = APP_CONFIG.port;
 

@@ -105,7 +105,9 @@ async fn get_all_agents_service(
         g.dataset_size,
         g.status,
         g.created_at,
-        g.updated_at, 
+        g.updated_at,
+        g.nft_id,
+        g.nft_tx, 
         u.address
      FROM agents g
      JOIN users u ON g.owner_id = u.id WHERE 1=1"#,
@@ -185,6 +187,8 @@ async fn get_all_agents_service(
             created_at: result.created_at,
             updated_at: result.updated_at,
             owner_address: result.address,
+            nft_id: result.nft_id,
+            nft_tx: result.nft_tx,
         })
         .collect();
 
@@ -231,7 +235,9 @@ async fn get_agents_for_prompt_service(
         g.category as "category: AgentCategory",
         g.dataset_size,
         g.created_at,
-        g.updated_at, 
+        g.updated_at,
+        g.nft_id,
+        g.nft_tx, 
         u.address as "owner_address: String"
     FROM agents g
     JOIN users u ON g.owner_id = u.id"#
