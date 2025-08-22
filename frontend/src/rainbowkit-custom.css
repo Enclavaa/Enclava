@@ -1,0 +1,190 @@
+/* Custom RainbowKit styles to match the app's design */
+
+/* Override modal styles */
+[data-rk] {
+  --rk-fonts-body: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* Modal backdrop */
+[data-rk] > div[role="dialog"] {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Modal container */
+[data-rk] [data-rk="modal"] {
+  background: #000000 !important;
+  border: 4px solid #ef4444 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+}
+
+/* Modal header */
+[data-rk] [data-rk="modal-header"] {
+  background: #000000 !important;
+  border-bottom: 2px solid #ef4444 !important;
+  padding: 24px !important;
+}
+
+/* Modal title */
+[data-rk] [data-rk="modal-title"] {
+  color: #ffffff !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  font-size: 20px !important;
+}
+
+/* Close button */
+[data-rk] [data-rk="modal-close-button"] {
+  background: transparent !important;
+  border: 2px solid #ffffff !important;
+  color: #ffffff !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 0 !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-rk] [data-rk="modal-close-button"]:hover {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Wallet list */
+[data-rk] [data-rk="wallet-list"] {
+  background: #000000 !important;
+  padding: 24px !important;
+}
+
+/* Wallet option buttons */
+[data-rk] [data-rk="wallet-option"] {
+  background: #1f1f1f !important;
+  border: 2px solid #ffffff !important;
+  border-radius: 0 !important;
+  padding: 16px !important;
+  margin-bottom: 12px !important;
+  transition: all 0.2s ease !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+[data-rk] [data-rk="wallet-option"]:hover {
+  background: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #000000 !important;
+}
+
+[data-rk] [data-rk="wallet-option"] span {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+[data-rk] [data-rk="wallet-option"]:hover span {
+  color: #000000 !important;
+}
+
+/* Recent badge */
+[data-rk] [data-rk="recent-badge"] {
+  background: #ef4444 !important;
+  color: #000000 !important;
+  border-radius: 0 !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+  letter-spacing: 0.1em !important;
+}
+
+/* Connect button in modal */
+[data-rk] [data-rk="connect-button"] {
+  background: #ef4444 !important;
+  color: #000000 !important;
+  border: 2px solid #ef4444 !important;
+  border-radius: 0 !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  padding: 16px 32px !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-rk] [data-rk="connect-button"]:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Loading state */
+[data-rk] [data-rk="loading"] {
+  color: #ef4444 !important;
+}
+
+/* Error states */
+[data-rk] [data-rk="error"] {
+  background: #7f1d1d !important;
+  border: 2px solid #dc2626 !important;
+  color: #ffffff !important;
+  border-radius: 0 !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+}
+
+/* Account modal styles */
+[data-rk] [data-rk="account-modal"] {
+  background: #000000 !important;
+  border: 4px solid #ef4444 !important;
+  border-radius: 0 !important;
+}
+
+[data-rk] [data-rk="account-section"] {
+  background: #1f1f1f !important;
+  border: 2px solid #ef4444 !important;
+  border-radius: 0 !important;
+  margin-bottom: 16px !important;
+}
+
+[data-rk] [data-rk="account-name"] {
+  color: #ffffff !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+[data-rk] [data-rk="account-address"] {
+  color: #d1d5db !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace !important;
+  font-weight: 600 !important;
+}
+
+/* Disconnect button */
+[data-rk] [data-rk="disconnect-button"] {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border: 2px solid #dc2626 !important;
+  border-radius: 0 !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-rk] [data-rk="disconnect-button"]:hover {
+  background: #ffffff !important;
+  color: #dc2626 !important;
+  border-color: #ffffff !important;
+}
