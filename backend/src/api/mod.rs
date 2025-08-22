@@ -1,8 +1,9 @@
 pub mod dataset;
+pub mod profile;
 
 use crate::{
     config::{MAX_ALLOWED_SELECTED_AGENTS, ROUTER_AGENT_MODEL},
-    helpers,
+    database, helpers,
     state::AppState,
     tee,
     types::{
@@ -195,6 +196,43 @@ async fn get_all_agents_service(
         .collect();
 
     HttpResponse::Ok().json(agents)
+}
+
+#[utoipa::path(
+    get,
+    path = "/agents/{id}",
+    params(
+        ("id" = i64, Path, description = "Agent id")
+    ),
+    responses(
+        (status = 200, description = "Agent fetched successfully", body = AgentDb),
+        (status = 404, description = "Agent not found", body = ErrorResponse),
+        (status = 500, description = "Internal server error", body = ErrorResponse)
+    ),
+    tag = "Agents"
+)]
+#[get("/agents/{id}")]
+async fn get_agent_by_id_service(
+    app_state: web::Data<AppState>,
+    path: web::Path<i64>,
+) -> impl Responder {
+    let agent_id = path.into_inner();
+
+    let db = &app_state.db;
+
+    let agent_db = match database::get_agent_by_id(db, agent_id).await {
+        Ok(agent) => agent,
+        Err(e) => {
+            error!("Failed to get agent: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                success: false,
+                message: format!("Failed to get agent from database: {}", e),
+                error_code: Some("AGENT_FETCH_FAILED".to_string()),
+            });
+        }
+    };
+
+    HttpResponse::Ok().json(agent_db)
 }
 
 /*

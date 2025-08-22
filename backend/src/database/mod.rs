@@ -168,3 +168,72 @@ pub async fn get_agents_by_ids(
 
     Ok(agents)
 }
+
+// Get Agents by user address
+pub async fn get_agents_by_user_address(
+    db: &sqlx::Pool<sqlx::Postgres>,
+    user_address: &str,
+) -> Result<Vec<AgentDb>, sqlx::Error> {
+    let agents = sqlx::query_as!(
+        AgentDb,
+        r#"
+        SELECT
+        g.id,
+        g.name,
+        g.description,
+        g.price,
+        g.owner_id,
+        g.dataset_path,
+        g.status,
+        g.category as "category: AgentCategory",
+        g.dataset_size,
+        g.created_at,
+        g.updated_at, 
+        g.nft_id,
+        g.nft_tx,
+        u.address as "owner_address: String"
+    FROM agents g
+    JOIN users u ON g.owner_id = u.id
+    WHERE u.address = $1
+        "#,
+        user_address
+    )
+    .fetch_all(db)
+    .await?;
+
+    Ok(agents)
+}
+
+pub async fn get_agent_by_id(
+    db: &sqlx::Pool<sqlx::Postgres>,
+    id: i64,
+) -> Result<AgentDb, sqlx::Error> {
+    let agent = sqlx::query_as!(
+        AgentDb,
+        r#"
+        SELECT
+        g.id,
+        g.name,
+        g.description,
+        g.price,
+        g.owner_id,
+        g.dataset_path,
+        g.status,
+        g.category as "category: AgentCategory",
+        g.dataset_size,
+        g.created_at,
+        g.updated_at, 
+        g.nft_id,
+        g.nft_tx,
+        u.address as "owner_address: String"
+    FROM agents g
+    JOIN users u ON g.owner_id = u.id
+    WHERE g.id = $1
+        "#,
+        id
+    )
+    .fetch_one(db)
+    .await?;
+
+    Ok(agent)
+}
