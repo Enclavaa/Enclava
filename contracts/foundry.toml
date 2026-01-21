@@ -8,3 +8,4 @@ libs = ["lib"]
 [rpc_endpoints]
 sei_mainnet = "https://evm-rpc.sei-apis.com"
 sei_testnet = "https://evm-rpc-testnet.sei-apis.com"
+hedera_testnet = "https://testnet.hashio.io/api"
