@@ -48,7 +48,7 @@ export const HederaSection: React.FC = () => {
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center border-2 border-black p-8">
             <div className="font-mono text-4xl font-black text-violet-500 mb-2">
-              &lt;400ms
+              &lt;3 s
             </div>
             <div className="font-black uppercase text-lg">
               Transaction Finality
