@@ -142,6 +142,8 @@ pub async fn verif_selected_agents_payment(
 
     let tx_receipt = provider.get_transaction_receipt(tx_hash.parse()?).await?;
 
+    println!("Transaction receipt: {:?}", tx_receipt);
+
     if tx_receipt.is_none() {
         tracing::error!("Transaction receipt not found for tx hash: {}", tx_hash);
         return Ok(false);
@@ -151,6 +153,8 @@ pub async fn verif_selected_agents_payment(
 
     // Check if the tx is sucess
     let tx_success = tx_receipt.status();
+
+    println!("Transaction success: {}", tx_success);
 
     if !tx_success {
         tracing::error!("Transaction of {} is not successful", tx_hash);
@@ -182,7 +186,7 @@ pub async fn verif_selected_agents_payment(
             let amount_paid_u256 = decoded_log.amount;
             let token_nft_id = decoded_log.tokenId;
 
-            let amount_paid: f64 = format_units(amount_paid_u256, 18)?.parse()?;
+            let amount_paid: f64 = format_units(amount_paid_u256, 8)?.parse()?;
             let nft_id: i64 = token_nft_id.to_string().parse()?;
 
             tracing::debug!("Amount paid: {}", amount_paid);
