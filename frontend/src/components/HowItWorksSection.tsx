@@ -18,7 +18,7 @@ export const HowItWorksSection: React.FC = () => {
     },
     {
       title: "Share",
-      description: "Share or sell data safely via Sei Network.",
+      description: "Share or sell data safely via Hedera Network.",
     },
   ];
 
@@ -153,7 +153,7 @@ export const HowItWorksSection: React.FC = () => {
               This interactive diagram illustrates the complete Enclava
               ecosystem, showing how data flows through our platform process,
               smart contract interactions, and secure sharing mechanisms powered
-              by the Sei Network.
+              by the Hedera Network.
             </p>
           </div>
         </div>

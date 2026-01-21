@@ -4,7 +4,7 @@ import { DATASET_NFT_CONTRACT } from "../contracts/DatasetNFT";
 
 export interface PaymentData {
   tokenIds: number[];
-  amounts: number[]; // amounts in SEI
+  amounts: number[]; // amounts in Hedera
 }
 
 export interface UseDatasetPaymentReturn {
@@ -52,7 +52,7 @@ export const useDatasetPayment = (): UseDatasetPaymentReturn => {
         throw new Error("At least one dataset must be selected");
       }
 
-      // Convert amounts from SEI to wei (18 decimals)
+      // Convert amounts from Hedera to wei (18 decimals)
       const amountsInWei = data.amounts.map((amount) =>
         parseEther(amount.toString())
       );

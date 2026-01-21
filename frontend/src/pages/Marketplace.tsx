@@ -241,7 +241,7 @@ export const Marketplace: React.FC = () => {
                         {formatCategory(dataset.category)}
                       </span>
                       <span className="font-black text-lg text-red-500">
-                        {dataset.price} SEI
+                        {dataset.price} HBAR
                       </span>
                     </div>
                     <h3 className="font-black text-lg uppercase leading-tight">
@@ -370,7 +370,7 @@ export const Marketplace: React.FC = () => {
                 {datasets
                   .reduce((total, dataset) => total + dataset.price, 0)
                   .toFixed(1)}{" "}
-                SEI
+                HBAR
               </div>
               <div className="font-black uppercase text-sm">Total Value</div>
             </div>

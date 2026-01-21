@@ -57,7 +57,7 @@ export const CTASection: React.FC = () => {
         <div className="mt-16 font-mono text-xs text-red-500">
           <pre>
             {`═══════════════════════════════════════
-          ENCLAVA © 2025
+          ENCLAVA © 2026
 ═══════════════════════════════════════`}
           </pre>
         </div>

@@ -9,7 +9,7 @@ export const HederaSection: React.FC = () => {
           <div className="lg:w-2/3 lg:pr-16">
             <h2 className="text-5xl md:text-7xl font-black uppercase mb-8">
               Built on
-              <span className="text-red-500"> Sei</span>
+              <span className="text-red-500"> Hedera</span>
             </h2>
 
             <div className="space-y-6">
@@ -39,7 +39,7 @@ export const HederaSection: React.FC = () => {
           {/* Right side - Geometric visual */}
           <div className="lg:w-1/3 mt-12 lg:mt-0">
             <div className="relative">
-              <img src="/images/sei.png" />
+              <img src="/images/hbar.png" />
             </div>
           </div>
         </div>
