@@ -268,7 +268,7 @@ const Chat: React.FC = () => {
     const systemMessage: Message = {
       id: Date.now().toString(),
       type: "system",
-      content: `Great! You've selected ${selectedAgents.length} dataset(s): ${selectedAgentNames}. Total cost: ${totalCost} Hedera. Processing payment...`,
+      content: `Great! You've selected ${selectedAgents.length} dataset(s): ${selectedAgentNames}. Total cost: ${totalCost} HBAR. Processing payment...`,
       timestamp: new Date(),
     };
 
@@ -572,7 +572,7 @@ const Chat: React.FC = () => {
                               {formatFileSize(agent.dataset_size)}
                             </span>
                             <span className="text-xs text-green-600 font-mono font-black">
-                              💰 {agent.price} Hedera
+                              💰 {agent.price} HBAR
                             </span>
                           </div>
                           <div className="text-xs text-gray-500 font-mono mt-1">
