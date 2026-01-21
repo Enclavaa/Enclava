@@ -276,10 +276,12 @@ const Chat: React.FC = () => {
     setChatPhase(ChatPhase.PAYMENT_PROCESSING);
 
     try {
+      console.log("selectedAgentData", selectedAgentData);
       // Validate that all selected agents have NFT IDs
       const agentsWithoutNftId = selectedAgentData.filter(
-        (agent) => !agent.nft_id
+        (agent) => agent.nft_id === null
       );
+      console.log("agentsWithoutNftId", agentsWithoutNftId);
       if (agentsWithoutNftId.length > 0) {
         toast.error(
           "Some selected datasets don't have associated NFTs. Please select different datasets.",

@@ -1,5 +1,5 @@
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { parseEther } from "viem";
+import { parseEther, parseUnits } from "viem";
 import { DATASET_NFT_CONTRACT } from "../contracts/DatasetNFT";
 
 export interface PaymentData {
@@ -44,7 +44,7 @@ export const useDatasetPayment = (): UseDatasetPaymentReturn => {
       // Validate input data
       if (data.tokenIds.length !== data.amounts.length) {
         throw new Error(
-          "Token IDs and amounts arrays must have the same length"
+          "Token IDs and amounts arrays must have the same length",
         );
       }
 
@@ -54,14 +54,16 @@ export const useDatasetPayment = (): UseDatasetPaymentReturn => {
 
       // Convert amounts from Hedera to wei (18 decimals)
       const amountsInWei = data.amounts.map((amount) =>
-        parseEther(amount.toString())
+        parseUnits(amount.toString(), 8),
       );
 
       // Calculate total payment amount
       const totalPayment = amountsInWei.reduce(
         (sum, amount) => sum + amount,
-        0n
+        0n,
       );
+
+      console.log("totalPayment: ", totalPayment);
 
       // Call the smart contract
       writeContract({
@@ -71,7 +73,7 @@ export const useDatasetPayment = (): UseDatasetPaymentReturn => {
           data.tokenIds.map((id) => BigInt(id)), // Convert to BigInt for uint256[]
           amountsInWei, // Already in wei as BigInt[]
         ],
-        value: totalPayment, // Send the total payment amount
+        value: parseUnits(totalPayment.toString(), 10), // Send the total payment amount
       });
     } catch (error) {
       console.error("Payment failed:", error);
