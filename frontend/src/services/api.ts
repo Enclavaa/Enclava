@@ -1,4 +1,6 @@
-const BASE_URL = "https://enclava.eaglefi.io";
+// const BASE_URL = "https://enclava.eaglefi.io";
+console.log("VITE_API_URL : ", import.meta.env.VITE_API_URL);
+const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080";
 
 export interface GenerateDatasetDetailsRequest {
   file: File;
@@ -46,7 +48,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
-    public errorCode?: string
+    public errorCode?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -54,7 +56,7 @@ export class ApiError extends Error {
 }
 
 export const generateDatasetDetails = async (
-  file: File
+  file: File,
 ): Promise<GenerateDatasetDetailsResponse> => {
   const formData = new FormData();
   formData.append("file", file);
@@ -87,7 +89,7 @@ export const generateDatasetDetails = async (
       throw new ApiError(
         errorMessage,
         response.status,
-        "error_code" in result ? result.error_code : undefined
+        "error_code" in result ? result.error_code : undefined,
       );
     }
 
@@ -96,7 +98,7 @@ export const generateDatasetDetails = async (
     } else {
       throw new ApiError(
         result.message || "Failed to generate dataset details",
-        response.status
+        response.status,
       );
     }
   } catch (error) {
@@ -106,13 +108,13 @@ export const generateDatasetDetails = async (
 
     throw new ApiError(
       error instanceof Error ? error.message : "Network error occurred",
-      0
+      0,
     );
   }
 };
 
 export const uploadDataset = async (
-  data: UploadDatasetRequest
+  data: UploadDatasetRequest,
 ): Promise<UploadDatasetSuccessResponse> => {
   const formData = new FormData();
 
@@ -154,7 +156,7 @@ export const uploadDataset = async (
       throw new ApiError(
         errorMessage,
         response.status,
-        "error_code" in result ? result.error_code : undefined
+        "error_code" in result ? result.error_code : undefined,
       );
     }
 
@@ -164,7 +166,7 @@ export const uploadDataset = async (
       throw new ApiError(
         result.message || "Upload failed",
         response.status,
-        "error_code" in result ? result.error_code : undefined
+        "error_code" in result ? result.error_code : undefined,
       );
     }
   } catch (error) {
@@ -175,7 +177,7 @@ export const uploadDataset = async (
     // Handle network errors or other fetch errors
     throw new ApiError(
       error instanceof Error ? error.message : "Network error occurred",
-      0
+      0,
     );
   }
 };
@@ -236,7 +238,7 @@ export const getChatAgents = async (prompt: string): Promise<ChatAgent[]> => {
     if (!response.ok) {
       throw new ApiError(
         `Failed to fetch chat agents: ${response.statusText}`,
-        response.status
+        response.status,
       );
     }
 
@@ -248,7 +250,7 @@ export const getChatAgents = async (prompt: string): Promise<ChatAgent[]> => {
     }
     throw new ApiError(
       error instanceof Error ? error.message : "Network error occurred",
-      0
+      0,
     );
   }
 };
@@ -256,7 +258,7 @@ export const getChatAgents = async (prompt: string): Promise<ChatAgent[]> => {
 export const getChatAnswer = async (
   agentIds: number[],
   prompt: string,
-  txHash: string
+  txHash: string,
 ): Promise<AgentResponse[]> => {
   try {
     const response = await fetch(`${BASE_URL}/chat/agents/answer`, {
@@ -274,7 +276,7 @@ export const getChatAnswer = async (
     if (!response.ok) {
       throw new ApiError(
         `Failed to get chat answer: ${response.statusText}`,
-        response.status
+        response.status,
       );
     }
 
@@ -291,7 +293,7 @@ export const getChatAnswer = async (
     }
     throw new ApiError(
       error instanceof Error ? error.message : "Network error occurred",
-      0
+      0,
     );
   }
 };
@@ -321,7 +323,7 @@ export interface GetDatasetsRequest {
 
 // Marketplace API Functions
 export const getMarketplaceDatasets = async (
-  params?: GetDatasetsRequest
+  params?: GetDatasetsRequest,
 ): Promise<MarketplaceDataset[]> => {
   try {
     const queryParams = new URLSearchParams();
@@ -348,7 +350,7 @@ export const getMarketplaceDatasets = async (
     if (!response.ok) {
       throw new ApiError(
         `Failed to fetch marketplace datasets: ${response.statusText}`,
-        response.status
+        response.status,
       );
     }
 
@@ -360,7 +362,7 @@ export const getMarketplaceDatasets = async (
     }
     throw new ApiError(
       error instanceof Error ? error.message : "Network error occurred",
-      0
+      0,
     );
   }
 };
@@ -374,7 +376,7 @@ export interface UserProfileResponse {
 
 // Profile API Functions
 export const getUserProfile = async (
-  userAddress: string
+  userAddress: string,
 ): Promise<MarketplaceDataset[]> => {
   try {
     const response = await fetch(`${BASE_URL}/users/${userAddress}/profile`, {
@@ -387,7 +389,7 @@ export const getUserProfile = async (
     if (!response.ok) {
       throw new ApiError(
         `Failed to fetch user profile: ${response.statusText}`,
-        response.status
+        response.status,
       );
     }
 
@@ -404,14 +406,14 @@ export const getUserProfile = async (
     }
     throw new ApiError(
       error instanceof Error ? error.message : "Network error occurred",
-      0
+      0,
     );
   }
 };
 
 // Dataset Details API Functions
 export const getDatasetDetails = async (
-  datasetId: number
+  datasetId: number,
 ): Promise<MarketplaceDataset> => {
   try {
     const response = await fetch(`${BASE_URL}/agents/${datasetId}`, {
@@ -424,7 +426,7 @@ export const getDatasetDetails = async (
     if (!response.ok) {
       throw new ApiError(
         `Failed to fetch dataset details: ${response.statusText}`,
-        response.status
+        response.status,
       );
     }
 
@@ -436,7 +438,7 @@ export const getDatasetDetails = async (
     }
     throw new ApiError(
       error instanceof Error ? error.message : "Network error occurred",
-      0
+      0,
     );
   }
 };

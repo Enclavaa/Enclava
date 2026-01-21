@@ -28,7 +28,7 @@ const mockTransactions: Transaction[] = [
     datasetId: "1",
     buyer: "0x9a1b...4c2d",
     seller: "0x742d...8f3a",
-    price: "0.5 SEI",
+    price: "0.5 HBAR",
     date: "2024-12-20T14:30:00",
     type: "sale",
     status: "completed",
@@ -39,7 +39,7 @@ const mockTransactions: Transaction[] = [
     datasetId: "4",
     buyer: "0x742d...8f3a",
     seller: "0x8d4a...1e6f",
-    price: "2.0 SEI",
+    price: "2.0 HBAR",
     date: "2024-12-18T10:15:00",
     type: "purchase",
     status: "completed",
@@ -50,7 +50,7 @@ const mockTransactions: Transaction[] = [
     datasetId: "2",
     buyer: "0x3f7e...9b8c",
     seller: "0x742d...8f3a",
-    price: "1.2 SEI",
+    price: "1.2 HBAR",
     date: "2024-12-15T16:45:00",
     type: "sale",
     status: "completed",
@@ -61,7 +61,7 @@ const mockTransactions: Transaction[] = [
     datasetId: "5",
     buyer: "0x742d...8f3a",
     seller: "0x6b3e...4f7a",
-    price: "1.8 SEI",
+    price: "1.8 HBAR",
     date: "2024-12-12T09:22:00",
     type: "purchase",
     status: "completed",
@@ -72,7 +72,7 @@ const mockTransactions: Transaction[] = [
     datasetId: "3",
     buyer: "0x5c9b...7a2e",
     seller: "0x742d...8f3a",
-    price: "0.8 SEI",
+    price: "0.8 HBAR",
     date: "2024-12-10T13:18:00",
     type: "sale",
     status: "pending",
@@ -110,7 +110,7 @@ const Transactions: React.FC = () => {
       (filterType === "buyer" && transaction.buyer === userWallet) ||
       (filterType === "seller" && transaction.seller === userWallet);
 
-    const priceValue = parseFloat(transaction.price.replace(" SEI", ""));
+    const priceValue = parseFloat(transaction.price.replace(" HBAR", ""));
     const matchesPrice =
       priceRange === "all" ||
       (priceRange === "low" && priceValue <= 0.5) ||
@@ -142,8 +142,8 @@ const Transactions: React.FC = () => {
         break;
       case "price":
         comparison =
-          parseFloat(a.price.replace(" SEI", "")) -
-          parseFloat(b.price.replace(" SEI", ""));
+          parseFloat(a.price.replace(" HBAR", "")) -
+          parseFloat(b.price.replace(" HBAR", ""));
         break;
       case "dataset":
         comparison = a.datasetName.localeCompare(b.datasetName);
@@ -164,7 +164,7 @@ const Transactions: React.FC = () => {
 
   // Calculate stats
   const totalVolume = mockTransactions.reduce((total, transaction) => {
-    return total + parseFloat(transaction.price.replace(" SEI", ""));
+    return total + parseFloat(transaction.price.replace(" HBAR", ""));
   }, 0);
 
   const salesCount = mockTransactions.filter(
@@ -184,7 +184,7 @@ const Transactions: React.FC = () => {
           </h1>
           <p className="font-mono text-lg">
             [TOTAL_TRANSACTIONS: {mockTransactions.length}] [VOLUME:{" "}
-            {totalVolume.toFixed(1)} SEI]
+            {totalVolume.toFixed(1)} HBAR]
           </p>
         </div>
       </div>
@@ -195,7 +195,7 @@ const Transactions: React.FC = () => {
           <div className="border-4 border-black p-6 text-center bg-gray-50">
             <DollarSign className="mx-auto mb-3 text-red-500" size={32} />
             <div className="font-black text-2xl text-red-500 mb-1">
-              {totalVolume.toFixed(1)} SEI
+              {totalVolume.toFixed(1)} HBAR
             </div>
             <div className="font-mono text-sm uppercase font-black">
               Total Volume
@@ -286,9 +286,9 @@ const Transactions: React.FC = () => {
                     className="w-full border-2 border-black p-3 font-mono font-black uppercase"
                   >
                     <option value="all">ALL PRICES</option>
-                    <option value="low">≤ 0.5 SEI</option>
-                    <option value="medium">0.5 - 1.5 SEI</option>
-                    <option value="high">&gt; 1.5 SEI</option>
+                    <option value="low">≤ 0.5 HBAR</option>
+                    <option value="medium">0.5 - 1.5 HBAR</option>
+                    <option value="high">&gt; 1.5 HBAR</option>
                   </select>
                 </div>
 

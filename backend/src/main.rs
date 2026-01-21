@@ -70,7 +70,7 @@ async fn main() -> std::io::Result<()> {
         let cors = Cors::default()
             .allow_any_origin()
             .allow_any_method()
-            .allow_any_header();
+            .allow_any_header(); // Cache preflight response for 1 hour
 
         let (app, app_api) = App::new()
             .wrap(cors)

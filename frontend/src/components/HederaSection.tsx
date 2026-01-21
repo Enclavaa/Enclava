@@ -1,6 +1,6 @@
 import React from "react";
 
-export const SeiSection: React.FC = () => {
+export const HederaSection: React.FC = () => {
   return (
     <section className="bg-white text-black py-20 px-6 md:px-12 lg:px-24">
       <div className="max-w-6xl mx-auto">
@@ -9,13 +9,13 @@ export const SeiSection: React.FC = () => {
           <div className="lg:w-2/3 lg:pr-16">
             <h2 className="text-5xl md:text-7xl font-black uppercase mb-8">
               Built on
-              <span className="text-red-500"> Sei</span>
+              <span className="text-red-500"> Hedera</span>
             </h2>
 
             <div className="space-y-6">
               <div className="flex items-center font-mono text-lg">
                 <span className="text-red-500 mr-4">[✓]</span>
-                <span className="font-black">Sub-400ms finality</span>
+                <span className="font-black">0.001$ transaction fees</span>
               </div>
               <div className="flex items-center font-mono text-lg">
                 <span className="text-red-500 mr-4">[✓]</span>
@@ -39,7 +39,7 @@ export const SeiSection: React.FC = () => {
           {/* Right side - Geometric visual */}
           <div className="lg:w-1/3 mt-12 lg:mt-0">
             <div className="relative">
-              <img src="/images/sei.png" />
+              <img src="/images/hbar.png" />
             </div>
           </div>
         </div>
@@ -56,9 +56,9 @@ export const SeiSection: React.FC = () => {
           </div>
           <div className="text-center border-2 border-black p-8">
             <div className="font-mono text-4xl font-black text-red-500 mb-2">
-              22K+
+              0.001$
             </div>
-            <div className="font-black uppercase text-lg">TPS Capacity</div>
+            <div className="font-black uppercase text-lg">Low Transaction Fee</div>
           </div>
           <div className="text-center border-2 border-black p-8">
             <div className="font-mono text-4xl font-black text-red-500 mb-2">

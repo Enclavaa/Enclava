@@ -14,7 +14,6 @@ import {
   ApiError,
 } from "../services/api";
 import { DATASET_NFT_CONTRACT } from "../contracts/DatasetNFT";
-import { seiTestnet } from "../wagmi.config";
 
 interface FormData {
   name: string;
@@ -288,7 +287,6 @@ const UploadDataset: React.FC = () => {
         ...DATASET_NFT_CONTRACT,
         functionName: "safeMint",
         args: [address, datasetId.toString()],
-        chainId: seiTestnet.id,
       });
     } catch (error) {
       const errorMessage =
@@ -491,7 +489,7 @@ const UploadDataset: React.FC = () => {
                     <strong>Category:</strong> {formData.category}
                   </p>
                   <p>
-                    <strong>Price:</strong> {formData.dataset_price} SEI
+                    <strong>Price:</strong> {formData.dataset_price} HBAR
                   </p>
                   <p>
                     <strong>Status:</strong> UPLOADED
@@ -858,7 +856,7 @@ const UploadDataset: React.FC = () => {
               {/* Price */}
               <div>
                 <label className="block font-black text-lg uppercase mb-2">
-                  Price (in SEI Tokens) *
+                  Price (in HBAR Tokens) *
                 </label>
                 <div className="flex">
                   <input
@@ -876,7 +874,7 @@ const UploadDataset: React.FC = () => {
                     }`}
                   />
                   <div className="border-4 border-black bg-black text-white p-4 font-mono text-lg font-black uppercase">
-                    SEI
+                    HBAR
                   </div>
                 </div>
                 {errors.dataset_price && (

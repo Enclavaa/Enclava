@@ -15,8 +15,8 @@ use serde_json::json;
 
 use crate::{
     config::{
-        APP_CONFIG, DATASET_DETAILS_GEN_AGENT_MODEL, ENCLAVA_CONTRACT_ADDRESS, INIT_AGENT_MODEL,
-        UPLOAD_DIR,
+        APP_CONFIG, DATASET_DETAILS_GEN_AGENT_MODEL, ENCLAVA_CONTRACT_ADDRESS,
+        HEDERA_TESTNET_RPC_URL, INIT_AGENT_MODEL, UPLOAD_DIR,
     },
     database,
     state::AppState,
@@ -136,11 +136,13 @@ pub async fn verif_selected_agents_payment(
 
     tracing::debug!("Total price to pay By Used Agents: {}", total_price_to_pay);
 
-    let rpc_url = &APP_CONFIG.alchemy_rpc_url;
+    let rpc_url = HEDERA_TESTNET_RPC_URL;
 
     let provider = ProviderBuilder::new().connect_http(rpc_url.parse()?);
 
     let tx_receipt = provider.get_transaction_receipt(tx_hash.parse()?).await?;
+
+    println!("Transaction receipt: {:?}", tx_receipt);
 
     if tx_receipt.is_none() {
         tracing::error!("Transaction receipt not found for tx hash: {}", tx_hash);
@@ -151,6 +153,8 @@ pub async fn verif_selected_agents_payment(
 
     // Check if the tx is sucess
     let tx_success = tx_receipt.status();
+
+    println!("Transaction success: {}", tx_success);
 
     if !tx_success {
         tracing::error!("Transaction of {} is not successful", tx_hash);
@@ -182,7 +186,7 @@ pub async fn verif_selected_agents_payment(
             let amount_paid_u256 = decoded_log.amount;
             let token_nft_id = decoded_log.tokenId;
 
-            let amount_paid: f64 = format_units(amount_paid_u256, 18)?.parse()?;
+            let amount_paid: f64 = format_units(amount_paid_u256, 8)?.parse()?;
             let nft_id: i64 = token_nft_id.to_string().parse()?;
 
             tracing::debug!("Amount paid: {}", amount_paid);

@@ -1,6 +1,6 @@
 // Smart contract configuration for Dataset NFT and payments
 export const DATASET_NFT_CONTRACT_ADDRESS =
-  "0x015C507e3E79D5049b003C3bE5b2E208A4Bb7e56";
+  "0xc409D09C1B5bE78FFB344fBAa70901cAeB79458B";
 
 export const DATASET_NFT_ABI = [
   {

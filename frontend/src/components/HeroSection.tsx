@@ -25,7 +25,7 @@ export const HeroSection: React.FC = () => {
 
         <div className="border-l-4 border-red-500 pl-6 mb-12 max-w-2xl">
           <p className="text-lg md:text-2xl font-mono uppercase tracking-wide">
-            A decentralized data marketplace powered by Sei.
+            A decentralized data marketplace powered by Hedera.
           </p>
         </div>
 

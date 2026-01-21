@@ -5,11 +5,11 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-1.89+-orange.svg)](https://www.rust-lang.org)
 [![Solidity](https://img.shields.io/badge/solidity-0.8.20+-green.svg)](https://soliditylang.org)
-[![Sei](https://img.shields.io/badge/blockchain-Sei-purple.svg)](https://sei.io)
+[![Hedera](https://img.shields.io/badge/blockchain-Hedera-purple.svg)](https://hedera.io)
 
 ## Overview
 
-Enclava is a decentralized AI-powered data marketplace designed to help individuals and organizations monetize their data without compromising privacy. Whether you want to sell, subscribe to, or rent data, Enclava offers a secure, seamless, and trustless environment, powered by Sei Blockchain.
+Enclava is a decentralized AI-powered data marketplace designed to help individuals and organizations monetize their data without compromising privacy. Whether you want to sell, subscribe to, or rent data, Enclava offers a secure, seamless, and trustless environment, powered by Hedera Blockchain.
 
 Using **Trusted Execution Environments (TEE)**, sensitive data is processed confidentiall, raw data is never exposed. Privacy is preserved by design. Each dataset is represented by a personal AI Agent, which autonomously handles data exchange, queries, and payments with other agents.
 
@@ -39,7 +39,7 @@ On Enclava, your data becomes a valuable digital asset, a byproduct of your core
 - **Smart contract automation** - Transparent, trustless transactions
 - **Pay-per-query model** - Users only pay for data they use
 - **Continuous royalties** - Data providers earn from every query
-- **Sub-400ms finality** - Ultra-fast settlements via Sei Blockchain
+- **Sub-400ms finality** - Ultra-fast settlements via Hedera Blockchain
 
 ### 🏗️ High-Performance Infrastructure
 
@@ -80,7 +80,7 @@ contracts/
 - **Backend**: Rust with Actix-web framework
 - **Database**: PostgreSQL with SQLx
 - **AI/ML**: Google Gemini integration via Rig framework
-- **Blockchain**: Solidity smart contracts on Sei Network
+- **Blockchain**: Solidity smart contracts on Hedera Network
 - **Development**: Foundry for smart contract development
 - **API Documentation**: OpenAPI/Swagger with utoipa
 - **File Processing**: CSV parsing and multipart uploads
@@ -108,7 +108,6 @@ Create a `.env` file in the root directory:
 
 ```env
 DATABASE_URL=postgresql://username:password@localhost/enclava
-ALCHEMY_RPC_URL=https://your-sei-rpc-url
 GEMINI_API_KEY=your-gemini-api-key
 PORT=8080
 ```
@@ -269,7 +268,7 @@ RUST_LOG=info ./target/release/enclava_backend
 ```bash
 cd contracts
 
-# Deploy to Sei testnet with verification
+# Deploy to Hedera testnet with verification
 ./deploy_testnet.sh
 ```
 

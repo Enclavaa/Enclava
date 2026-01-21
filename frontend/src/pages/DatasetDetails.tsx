@@ -27,19 +27,19 @@ const relatedDatasets: RelatedDataset[] = [
   {
     id: "2",
     name: "SOCIAL_SENTIMENT_CRYPTO",
-    price: "1.2 SEI",
+    price: "1.2 HBAR",
     category: "Social Media",
   },
   {
     id: "5",
     name: "USER_INTERACTION_LOGS",
-    price: "0.3 SEI",
+    price: "0.3 HBAR",
     category: "Analytics",
   },
   {
     id: "8",
     name: "GAMING_BEHAVIOR_2024",
-    price: "0.9 SEI",
+    price: "0.9 HBAR",
     category: "Gaming",
   },
 ];
@@ -193,7 +193,7 @@ const DatasetDetails: React.FC = () => {
             </div>
             <div className="text-right">
               <div className="font-black text-4xl text-red-500 mb-1">
-                {dataset.price} SEI
+                {dataset.price} HBAR
               </div>
               <div className="font-mono text-sm uppercase">PRICE</div>
             </div>
@@ -290,7 +290,7 @@ const DatasetDetails: React.FC = () => {
             <div className="border-4 border-black p-6 mb-8 bg-gray-50">
               <div className="text-center mb-6">
                 <div className="font-black text-3xl mb-2">
-                  {dataset.price} SEI
+                  {dataset.price} HBAR
                 </div>
                 <div className="font-mono text-sm uppercase">TOTAL PRICE</div>
               </div>

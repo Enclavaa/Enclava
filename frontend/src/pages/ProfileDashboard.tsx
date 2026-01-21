@@ -135,7 +135,7 @@ const ProfileDashboard: React.FC = () => {
             <div className="font-black text-3xl text-red-500 mb-1">
               {earningsLoading
                 ? "..."
-                : `${parseFloat(totalEarnings).toFixed(1)} SEI`}
+                : `${parseFloat(totalEarnings).toFixed(1)} HBAR`}
             </div>
             <div className="font-mono text-sm uppercase font-black">
               Total Earnings
@@ -218,7 +218,7 @@ const ProfileDashboard: React.FC = () => {
                           Price
                         </div>
                         <div className="font-black text-lg text-red-500">
-                          {dataset.price} SEI
+                          {dataset.price} HBAR
                         </div>
                       </div>
                       <div>

@@ -469,6 +469,8 @@ async fn get_response_from_agents_service(
 
         let agent = agent.unwrap();
 
+        tracing::debug!("Prompting agent with id {} with prompt {}", agent_id, prompt);
+
         let response = match agent.prompt(prompt).await {
             Ok(response) => response,
             Err(e) => {

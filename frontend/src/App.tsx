@@ -4,7 +4,7 @@ import { Sidebar } from "./components/Sidebar";
 import { HeroSection } from "./components/HeroSection";
 import { WhySection } from "./components/WhySection";
 import { HowItWorksSection } from "./components/HowItWorksSection";
-import { SeiSection } from "./components/SeiSection";
+import { HederaSection } from "./components/HederaSection";
 import { CTASection } from "./components/CTASection";
 import { Marketplace } from "./pages/Marketplace";
 import UploadDataset from "./pages/UploadDataset";
@@ -36,7 +36,7 @@ function App() {
                       <HeroSection />
                       <WhySection />
                       <HowItWorksSection />
-                      <SeiSection />
+                      <HederaSection />
                       <CTASection />
                     </div>
                   }

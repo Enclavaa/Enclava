@@ -268,7 +268,7 @@ const Chat: React.FC = () => {
     const systemMessage: Message = {
       id: Date.now().toString(),
       type: "system",
-      content: `Great! You've selected ${selectedAgents.length} dataset(s): ${selectedAgentNames}. Total cost: ${totalCost} SEI. Processing payment...`,
+      content: `Great! You've selected ${selectedAgents.length} dataset(s): ${selectedAgentNames}. Total cost: ${totalCost} HBAR. Processing payment...`,
       timestamp: new Date(),
     };
 
@@ -276,10 +276,12 @@ const Chat: React.FC = () => {
     setChatPhase(ChatPhase.PAYMENT_PROCESSING);
 
     try {
+      console.log("selectedAgentData", selectedAgentData);
       // Validate that all selected agents have NFT IDs
       const agentsWithoutNftId = selectedAgentData.filter(
-        (agent) => !agent.nft_id
+        (agent) => agent.nft_id === null
       );
+      console.log("agentsWithoutNftId", agentsWithoutNftId);
       if (agentsWithoutNftId.length > 0) {
         toast.error(
           "Some selected datasets don't have associated NFTs. Please select different datasets.",
@@ -570,7 +572,7 @@ const Chat: React.FC = () => {
                               {formatFileSize(agent.dataset_size)}
                             </span>
                             <span className="text-xs text-green-600 font-mono font-black">
-                              💰 {agent.price} SEI
+                              💰 {agent.price} HBAR
                             </span>
                           </div>
                           <div className="text-xs text-gray-500 font-mono mt-1">

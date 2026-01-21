@@ -3,7 +3,7 @@ import { DATASET_NFT_CONTRACT } from "../contracts/DatasetNFT";
 import { formatEther } from "viem";
 
 export interface UseUserEarningsReturn {
-  totalEarnings: string; // in SEI
+  totalEarnings: string; // in Hedera
   totalEarningsWei: bigint | undefined;
   isLoading: boolean;
   error: Error | null;
