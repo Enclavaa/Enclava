@@ -8,7 +8,10 @@ use alloy::{
     sol_types::SolEvent,
 };
 
-use color_eyre::{Result, eyre::Context};
+use color_eyre::{
+    Result,
+    eyre::{Context, eyre},
+};
 
 use crate::{
     config::{ENCLAVA_CONTRACT_ADDRESS, HEDERA_TESTNET_RPC_URL},
@@ -43,6 +46,9 @@ pub async fn mint_nft_fetcher(app_state: &WebAppState) -> Result<()> {
         Address::from_str(ENCLAVA_CONTRACT_ADDRESS).context("Failed to parse contract address")?;
 
     let event_sig = "DatasetNFTMinted(address,uint256,string)";
+
+    // Throw a test error to test the error handling
+    // return Err(eyre!("Test error"));
 
     let mut last_block = provider
         .get_block_number()
@@ -96,6 +102,9 @@ async fn poll_for_events(
         .context("Failed to get current block number")?;
 
     tracing::debug!("Polling blocks {} to {}", last_block, current_block);
+
+    // Throw a test error to test the error handling
+    // return Err(eyre!("Test error"));
 
     if current_block >= *last_block {
         let filter = Filter::new()
