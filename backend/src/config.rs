@@ -20,7 +20,8 @@ impl AppConfig {
     }
 }
 pub const UPLOAD_DIR: &str = "./uploads";
-pub const INIT_AGENT_MODEL: &str = "gemini-flash-latest";
+// pub const INIT_AGENT_MODEL: &str = "gemini-flash-latest";
+pub const INIT_AGENT_MODEL: &str = "gemini-flash-lite-latest";
 pub const ROUTER_AGENT_MODEL: &str = "gemini-flash-lite-latest";
 pub const DATASET_DETAILS_GEN_AGENT_MODEL: &str = "gemini-flash-lite-latest";
 // pub const ENCLAVA_CONTRACT_ADDRESS: &str = "0x015C507e3E79D5049b003C3bE5b2E208A4Bb7e56";
