@@ -63,7 +63,7 @@ export const useDatasetPayment = (): UseDatasetPaymentReturn => {
         0n,
       );
 
-      console.log("totalPayment: ", totalPayment);
+      console.log("totalPayment: ", parseUnits(totalPayment.toString(), 10));
 
       // Call the smart contract
       writeContract({
