@@ -15,8 +15,8 @@ use serde_json::json;
 
 use crate::{
     config::{
-        APP_CONFIG, DATASET_DETAILS_GEN_AGENT_MODEL, ENCLAVA_CONTRACT_ADDRESS, INIT_AGENT_MODEL,
-        UPLOAD_DIR,
+        APP_CONFIG, DATASET_DETAILS_GEN_AGENT_MODEL, ENCLAVA_CONTRACT_ADDRESS,
+        HEDERA_TESTNET_RPC_URL, INIT_AGENT_MODEL, UPLOAD_DIR,
     },
     database,
     state::AppState,
@@ -136,7 +136,7 @@ pub async fn verif_selected_agents_payment(
 
     tracing::debug!("Total price to pay By Used Agents: {}", total_price_to_pay);
 
-    let rpc_url = &APP_CONFIG.alchemy_rpc_url;
+    let rpc_url = HEDERA_TESTNET_RPC_URL;
 
     let provider = ProviderBuilder::new().connect_http(rpc_url.parse()?);
 
