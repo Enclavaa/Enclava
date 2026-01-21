@@ -41,7 +41,7 @@ export const HowItWorksSection: React.FC = () => {
             {steps.map((step, index) => (
               <div key={index} className="relative">
                 {/* Step number block */}
-                <div className="bg-red-500 text-black w-20 h-20 flex items-center justify-center mb-8">
+                <div className="bg-violet-500 text-black w-20 h-20 flex items-center justify-center mb-8">
                   <span className="font-black text-3xl font-mono">
                     {index + 1}
                   </span>

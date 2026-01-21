@@ -22,7 +22,7 @@ export const DiagramSpinner: React.FC<DiagramSpinnerProps> = ({
       {/* Spinner */}
       <div className={`${sizeClasses[size]} relative`}>
         <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
-        <div className="absolute inset-0 border-4 border-red-500 rounded-full border-t-transparent animate-spin"></div>
+        <div className="absolute inset-0 border-4 border-violet-500 rounded-full border-t-transparent animate-spin"></div>
       </div>
 
       {/* Loading text */}
@@ -35,13 +35,13 @@ export const DiagramSpinner: React.FC<DiagramSpinnerProps> = ({
 
       {/* Progress indicator dots */}
       <div className="flex space-x-2">
-        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+        <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse"></div>
         <div
-          className="w-2 h-2 bg-red-500 rounded-full animate-pulse"
+          className="w-2 h-2 bg-violet-500 rounded-full animate-pulse"
           style={{ animationDelay: "0.2s" }}
         ></div>
         <div
-          className="w-2 h-2 bg-red-500 rounded-full animate-pulse"
+          className="w-2 h-2 bg-violet-500 rounded-full animate-pulse"
           style={{ animationDelay: "0.4s" }}
         ></div>
       </div>
@@ -63,9 +63,9 @@ export const DiagramError: React.FC<DiagramErrorProps> = ({
       className={`flex flex-col items-center justify-center space-y-6 text-center ${className}`}
     >
       {/* Error icon */}
-      <div className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center">
+      <div className="w-24 h-24 bg-violet-500/10 rounded-full flex items-center justify-center">
         <svg
-          className="w-12 h-12 text-red-500"
+          className="w-12 h-12 text-violet-500"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -93,7 +93,7 @@ export const DiagramError: React.FC<DiagramErrorProps> = ({
       {/* Retry button */}
       <button
         onClick={onRetry}
-        className="bg-red-500 hover:bg-red-600 text-black font-black uppercase px-8 py-3 transition-colors duration-200 border-2 border-red-500 hover:border-red-600"
+        className="bg-violet-500 hover:bg-violet-600 text-black font-black uppercase px-8 py-3 transition-colors duration-200 border-2 border-violet-500 hover:border-violet-600"
       >
         Try Again
       </button>

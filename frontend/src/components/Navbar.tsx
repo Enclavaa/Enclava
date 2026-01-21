@@ -60,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
   ];
 
   return (
-    <nav className="lg:hidden bg-black text-white border-b-4 border-red-500 sticky top-0 z-50">
+    <nav className="lg:hidden bg-black text-white border-b-4 border-violet-500 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -72,7 +72,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
             />
             <Link
               to="/"
-              className="font-black text-2xl uppercase cursor-pointer hover:text-red-500 transition-colors"
+              className="font-black text-2xl uppercase cursor-pointer hover:text-violet-500 transition-colors"
             >
               ENCLAVA
             </Link>
@@ -89,7 +89,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="mt-4 border-t-2 border-red-500 pt-4">
+          <div className="mt-4 border-t-2 border-violet-500 pt-4">
             <div className="flex flex-col space-y-4">
               {mobileNavigationItems.map((item) => {
                 const IconComponent = item.icon;
@@ -101,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
                     to={item.path}
                     className={`flex items-center font-mono uppercase font-black px-4 py-2 border-2 transition-colors text-left ${
                       isActive
-                        ? "border-red-500 bg-red-500 text-black"
+                        ? "border-violet-500 bg-violet-500 text-black"
                         : "border-white hover:bg-white hover:text-black"
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -148,7 +148,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
                               <button
                                 onClick={openConnectModal}
                                 type="button"
-                                className="flex items-center justify-center space-x-2 bg-red-500 text-black font-black px-6 py-3 border-2 border-red-500 hover:bg-white hover:text-black transition-colors uppercase"
+                                className="flex items-center justify-center space-x-2 bg-violet-500 text-black font-black px-6 py-3 border-2 border-violet-500 hover:bg-white hover:text-black transition-colors uppercase"
                               >
                                 <span>Connect Wallet</span>
                               </button>
@@ -204,7 +204,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
                               <button
                                 onClick={openAccountModal}
                                 type="button"
-                                className="bg-red-500 text-black font-black px-4 py-2 border-2 border-red-500 hover:bg-white hover:text-black transition-colors uppercase text-sm"
+                                className="bg-violet-500 text-black font-black px-4 py-2 border-2 border-violet-500 hover:bg-white hover:text-black transition-colors uppercase text-sm"
                               >
                                 {account.displayName}
                                 {account.displayBalance

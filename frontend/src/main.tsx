@@ -15,7 +15,7 @@ import "react-toastify/dist/ReactToastify.css";
 const queryClient = new QueryClient();
 
 const customTheme = darkTheme({
-  accentColor: "#ef4444",
+  accentColor: "#8B5CF6",
   accentColorForeground: "#000000",
   borderRadius: "small",
   fontStack: "system",
@@ -27,14 +27,14 @@ const enhancedTheme = {
   colors: {
     ...customTheme.colors,
     modalBackground: "#000000",
-    modalBorder: "#ef4444",
+    modalBorder: "#8B5CF6",
     modalText: "#ffffff",
     modalTextSecondary: "#d1d5db",
     profileAction: "#1f1f1f",
     profileActionHover: "#2a2a2a",
     profileForeground: "#000000",
-    selectedOptionBorder: "#ef4444",
-    standby: "#ef4444",
+    selectedOptionBorder: "#8B5CF6",
+    standby: "#8B5CF6",
   },
   fonts: {
     body: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace',

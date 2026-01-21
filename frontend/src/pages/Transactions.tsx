@@ -193,8 +193,8 @@ const Transactions: React.FC = () => {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="border-4 border-black p-6 text-center bg-gray-50">
-            <DollarSign className="mx-auto mb-3 text-red-500" size={32} />
-            <div className="font-black text-2xl text-red-500 mb-1">
+            <DollarSign className="mx-auto mb-3 text-violet-500" size={32} />
+            <div className="font-black text-2xl text-violet-500 mb-1">
               {totalVolume.toFixed(1)} HBAR
             </div>
             <div className="font-mono text-sm uppercase font-black">
@@ -203,7 +203,7 @@ const Transactions: React.FC = () => {
           </div>
 
           <div className="border-4 border-black p-6 text-center bg-gray-50">
-            <div className="font-black text-2xl text-red-500 mb-1">
+            <div className="font-black text-2xl text-violet-500 mb-1">
               {mockTransactions.length}
             </div>
             <div className="font-mono text-sm uppercase font-black">
@@ -249,7 +249,7 @@ const Transactions: React.FC = () => {
           {/* Filter Toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center space-x-2 bg-black text-white font-black px-6 py-3 border-4 border-black hover:bg-red-500 hover:border-red-500 transition-colors uppercase"
+            className="flex items-center space-x-2 bg-black text-white font-black px-6 py-3 border-4 border-black hover:bg-violet-500 hover:border-violet-500 transition-colors uppercase"
           >
             <Filter size={20} />
             <span>Filters</span>
@@ -321,14 +321,14 @@ const Transactions: React.FC = () => {
               <div className="grid grid-cols-6 gap-4 font-black uppercase text-sm">
                 <button
                   onClick={() => handleSort("dataset")}
-                  className="flex items-center space-x-1 hover:text-red-500 transition-colors text-left"
+                  className="flex items-center space-x-1 hover:text-violet-500 transition-colors text-left"
                 >
                   <span>Transaction ID</span>
                   <ArrowUpDown size={14} />
                 </button>
                 <button
                   onClick={() => handleSort("dataset")}
-                  className="flex items-center space-x-1 hover:text-red-500 transition-colors text-left"
+                  className="flex items-center space-x-1 hover:text-violet-500 transition-colors text-left"
                 >
                   <span>Dataset</span>
                   <ArrowUpDown size={14} />
@@ -337,14 +337,14 @@ const Transactions: React.FC = () => {
                 <span>Seller</span>
                 <button
                   onClick={() => handleSort("price")}
-                  className="flex items-center space-x-1 hover:text-red-500 transition-colors text-left"
+                  className="flex items-center space-x-1 hover:text-violet-500 transition-colors text-left"
                 >
                   <span>Price</span>
                   <ArrowUpDown size={14} />
                 </button>
                 <button
                   onClick={() => handleSort("date")}
-                  className="flex items-center space-x-1 hover:text-red-500 transition-colors text-left"
+                  className="flex items-center space-x-1 hover:text-violet-500 transition-colors text-left"
                 >
                   <span>Date</span>
                   <ArrowUpDown size={14} />
@@ -382,7 +382,7 @@ const Transactions: React.FC = () => {
                     <div>
                       <Link
                         to={`/dataset/${transaction.datasetId}`}
-                        className="font-mono font-black text-sm hover:text-red-500 transition-colors flex items-center space-x-1"
+                        className="font-mono font-black text-sm hover:text-violet-500 transition-colors flex items-center space-x-1"
                       >
                         <span className="truncate">
                           {transaction.datasetName}
@@ -395,7 +395,7 @@ const Transactions: React.FC = () => {
                             ? "bg-green-500 text-black"
                             : transaction.status === "pending"
                             ? "bg-yellow-500 text-black"
-                            : "bg-red-500 text-white"
+                            : "bg-violet-500 text-white"
                         }`}
                       >
                         {transaction.status.toUpperCase()}
@@ -430,7 +430,7 @@ const Transactions: React.FC = () => {
 
                     {/* Price */}
                     <div>
-                      <span className="font-black text-lg text-red-500">
+                      <span className="font-black text-lg text-violet-500">
                         {transaction.price}
                       </span>
                     </div>
@@ -467,13 +467,13 @@ const Transactions: React.FC = () => {
             <div className="space-x-4">
               <Link
                 to="/marketplace"
-                className="inline-block bg-red-500 text-white font-black px-8 py-4 border-4 border-red-500 hover:bg-black hover:border-black transition-colors uppercase"
+                className="inline-block bg-violet-500 text-white font-black px-8 py-4 border-4 border-violet-500 hover:bg-black hover:border-black transition-colors uppercase"
               >
                 Browse Marketplace
               </Link>
               <Link
                 to="/upload-dataset"
-                className="inline-block bg-black text-white font-black px-8 py-4 border-4 border-black hover:bg-red-500 hover:border-red-500 transition-colors uppercase"
+                className="inline-block bg-black text-white font-black px-8 py-4 border-4 border-black hover:bg-violet-500 hover:border-violet-500 transition-colors uppercase"
               >
                 Upload Dataset
               </Link>

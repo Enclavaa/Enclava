@@ -52,10 +52,10 @@ export const Sidebar: React.FC<SidebarProps> = () => {
   ];
 
   return (
-    <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-black border-r-4 border-red-500">
+    <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-black border-r-4 border-violet-500">
       <div className="flex flex-col flex-1 min-h-0">
         {/* Logo */}
-        <div className="flex items-center h-16 px-4 border-b-2 border-red-500">
+        <div className="flex items-center h-16 px-4 border-b-2 border-violet-500">
           <img
             src="/images/logo.png"
             alt="Enclava Logo"
@@ -63,7 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
           />
           <Link
             to="/"
-            className="font-black text-xl uppercase cursor-pointer text-white hover:text-red-500 transition-colors"
+            className="font-black text-xl uppercase cursor-pointer text-white hover:text-violet-500 transition-colors"
           >
             ENCLAVA
           </Link>
@@ -81,7 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                 to={item.path}
                 className={`flex items-center px-4 py-3 text-sm font-mono uppercase font-black border-2 transition-colors rounded-md ${
                   isActive
-                    ? "border-red-500 bg-red-500 text-black"
+                    ? "border-violet-500 bg-violet-500 text-black"
                     : "border-white text-white hover:bg-white hover:text-black"
                 }`}
               >
@@ -93,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
         </nav>
 
         {/* Connect Wallet Button */}
-        <div className="p-4 border-t-2 border-red-500">
+        <div className="p-4 border-t-2 border-violet-500">
           <ConnectButton.Custom>
             {({
               account,
@@ -129,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                         <button
                           onClick={openConnectModal}
                           type="button"
-                          className="w-full flex items-center justify-center px-4 py-3 bg-red-500 text-black font-black border-2 border-red-500 hover:bg-white hover:text-black transition-colors uppercase rounded-md"
+                          className="w-full flex items-center justify-center px-4 py-3 bg-violet-500 text-black font-black border-2 border-violet-500 hover:bg-white hover:text-black transition-colors uppercase rounded-md"
                         >
                           <span>Connect Wallet</span>
                         </button>
@@ -181,7 +181,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                         <button
                           onClick={openAccountModal}
                           type="button"
-                          className="w-full flex items-center justify-center px-4 py-3 bg-red-500 text-black font-black border-2 border-red-500 hover:bg-white hover:text-black transition-colors uppercase rounded-md"
+                          className="w-full flex items-center justify-center px-4 py-3 bg-violet-500 text-black font-black border-2 border-violet-500 hover:bg-white hover:text-black transition-colors uppercase rounded-md"
                         >
                           <span>
                             {account.displayName}

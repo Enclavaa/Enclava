@@ -329,10 +329,10 @@ const Chat: React.FC = () => {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Chat Header */}
-        <div className="bg-black text-white p-4 border-b-4 border-red-500">
+        <div className="bg-black text-white p-4 border-b-4 border-violet-500">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Bot className="text-red-500" size={24} />
+              <Bot className="text-violet-500" size={24} />
               <div>
                 <h1 className="font-black text-xl uppercase">
                   AI Chat Assistant
@@ -345,7 +345,7 @@ const Chat: React.FC = () => {
             {chatPhase !== ChatPhase.INITIAL && (
               <button
                 onClick={resetChat}
-                className="px-4 py-2 bg-red-500 text-white font-black uppercase border-2 border-red-500 hover:bg-white hover:text-red-500 transition-colors rounded text-sm"
+                className="px-4 py-2 bg-violet-500 text-white font-black uppercase border-2 border-violet-500 hover:bg-white hover:text-violet-500 transition-colors rounded text-sm"
               >
                 New Chat
               </button>
@@ -365,7 +365,7 @@ const Chat: React.FC = () => {
                 <div
                   className={`max-w-3xl rounded-lg p-4 ${
                     message.type === "user"
-                      ? "bg-red-500 text-white font-mono"
+                      ? "bg-violet-500 text-white font-mono"
                       : message.type === "system"
                       ? "bg-yellow-100 border-2 border-yellow-400 text-black"
                       : "bg-white border-2 border-gray-200 text-black"
@@ -374,7 +374,7 @@ const Chat: React.FC = () => {
                   <div className="flex items-start space-x-3">
                     {message.type === "ai" && (
                       <Bot
-                        className="text-red-500 mt-1 flex-shrink-0"
+                        className="text-violet-500 mt-1 flex-shrink-0"
                         size={20}
                       />
                     )}
@@ -403,9 +403,9 @@ const Chat: React.FC = () => {
                             return (
                               <div
                                 key={index}
-                                className="border-l-4 border-red-500 pl-4 bg-gray-50 p-3 rounded"
+                                className="border-l-4 border-violet-500 pl-4 bg-gray-50 p-3 rounded"
                               >
-                                <h4 className="font-black text-sm text-red-600 uppercase mb-2">
+                                <h4 className="font-black text-sm text-violet-600 uppercase mb-2">
                                   {agent?.name ||
                                     `Dataset ${response.agent_id}`}
                                 </h4>
@@ -421,7 +421,7 @@ const Chat: React.FC = () => {
                       <p
                         className={`text-xs mt-2 ${
                           message.type === "user"
-                            ? "text-red-100"
+                            ? "text-violet-100"
                             : "text-gray-500"
                         }`}
                       >
@@ -438,7 +438,7 @@ const Chat: React.FC = () => {
             <div className="flex justify-start">
               <div className="max-w-3xl rounded-lg p-4 bg-white border-2 border-gray-200">
                 <div className="flex items-center space-x-3">
-                  <Bot className="text-red-500" size={20} />
+                  <Bot className="text-violet-500" size={20} />
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                     <div
@@ -459,7 +459,7 @@ const Chat: React.FC = () => {
         </div>
 
         {/* Input Area */}
-        <div className="bg-white border-t-4 border-red-500 p-4">
+        <div className="bg-white border-t-4 border-violet-500 p-4">
           <div className="flex space-x-4">
             <div className="flex-1 relative">
               <textarea
@@ -471,7 +471,7 @@ const Chat: React.FC = () => {
                     ? "Ask me anything about the available datasets..."
                     : "Select datasets from the sidebar to get your answer..."
                 }
-                className="w-full p-3 border-2 border-gray-300 rounded-lg font-mono text-black placeholder-gray-500 focus:border-red-500 focus:outline-none resize-none"
+                className="w-full p-3 border-2 border-gray-300 rounded-lg font-mono text-black placeholder-gray-500 focus:border-violet-500 focus:outline-none resize-none"
                 rows={2}
                 disabled={isLoading || chatPhase === ChatPhase.AGENT_SELECTION}
               />
@@ -483,7 +483,7 @@ const Chat: React.FC = () => {
                 isLoading ||
                 chatPhase === ChatPhase.AGENT_SELECTION
               }
-              className="px-6 py-3 bg-red-500 text-white font-black uppercase border-2 border-red-500 hover:bg-white hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
+              className="px-6 py-3 bg-violet-500 text-white font-black uppercase border-2 border-violet-500 hover:bg-white hover:text-violet-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
             >
               <Send size={20} />
             </button>
@@ -492,10 +492,10 @@ const Chat: React.FC = () => {
       </div>
 
       {/* Right Sidebar - Dataset Selection */}
-      <div className="w-80 bg-white border-l-4 border-red-500 flex flex-col">
+      <div className="w-80 bg-white border-l-4 border-violet-500 flex flex-col">
         <div className="bg-black text-white p-4">
           <div className="flex items-center space-x-3">
-            <Database className="text-red-500" size={20} />
+            <Database className="text-violet-500" size={20} />
             <h2 className="font-black uppercase">Dataset Selection</h2>
           </div>
           {selectedAgents.length > 0 &&
@@ -506,7 +506,7 @@ const Chat: React.FC = () => {
                   <button
                     onClick={handleAnalyzeWithSelectedDatasets}
                     disabled={!isConnected}
-                    className="w-full px-4 py-2 bg-red-500 text-white font-black uppercase border-2 border-red-500 hover:bg-white hover:text-red-500 transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-2 bg-violet-500 text-white font-black uppercase border-2 border-violet-500 hover:bg-white hover:text-violet-500 transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <CreditCard className="inline mr-2" size={16} />
                     Pay & Analyze ({selectedAgents.length})
@@ -522,14 +522,14 @@ const Chat: React.FC = () => {
                     </div>
                     {(isPaymentPending || isPaymentConfirming) && (
                       <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-500"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-violet-500"></div>
                       </div>
                     )}
                   </div>
                 )}
 
                 {!isConnected && (
-                  <p className="text-red-500 text-xs mt-2 font-mono text-center">
+                  <p className="text-violet-500 text-xs mt-2 font-mono text-center">
                     Connect wallet to proceed with payment
                   </p>
                 )}
@@ -540,7 +540,7 @@ const Chat: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {suggestedAgents.length > 0 ? (
             <div>
-              <h3 className="font-black text-red-500 uppercase mb-3 text-sm">
+              <h3 className="font-black text-violet-500 uppercase mb-3 text-sm">
                 Suggested Datasets for Your Query
               </h3>
               <div className="space-y-3">
@@ -608,13 +608,13 @@ const Chat: React.FC = () => {
         </div>
 
         {/* Options Section - Bottom of Sidebar */}
-        <div className="border-t-2 border-red-200 bg-gray-50 p-4 flex flex-col gap-4">
+        <div className="border-t-2 border-violet-200 bg-gray-50 p-4 flex flex-col gap-4">
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={useScraping}
               onChange={() => setUseScraping(!useScraping)}
-              className="accent-red-500 w-5 h-5 rounded focus:ring-2 focus:ring-red-500"
+              className="accent-violet-500 w-5 h-5 rounded focus:ring-2 focus:ring-violet-500"
             />
             <span className="font-mono text-sm text-black">
               Use Web Scraping
@@ -625,7 +625,7 @@ const Chat: React.FC = () => {
               type="checkbox"
               checked={useOwnData}
               onChange={() => setUseOwnData(!useOwnData)}
-              className="accent-red-500 w-5 h-5 rounded focus:ring-2 focus:ring-red-500"
+              className="accent-violet-500 w-5 h-5 rounded focus:ring-2 focus:ring-violet-500"
             />
             <span className="font-mono text-sm text-black">
               Use Your Own Data

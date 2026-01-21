@@ -21,14 +21,14 @@
     font-weight: 900;
   }
 
-  /* Custom selection colors */
+  /* Custom selection colors - Hashgraph purple */
   ::selection {
-    background-color: #ef4444;
+    background-color: #8B5CF6;
     color: white;
   }
 
   ::-moz-selection {
-    background-color: #ef4444;
+    background-color: #8B5CF6;
     color: white;
   }
 }

@@ -106,7 +106,7 @@ const ProfileDashboard: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center space-x-6">
             {/* Avatar Block */}
-            <div className="border-4 border-white p-4 bg-red-500">
+            <div className="border-4 border-white p-4 bg-violet-500">
               <User className="text-black" size={32} />
             </div>
 
@@ -131,8 +131,8 @@ const ProfileDashboard: React.FC = () => {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="border-4 border-black p-6 text-center bg-gray-50">
-            <DollarSign className="mx-auto mb-3 text-red-500" size={32} />
-            <div className="font-black text-3xl text-red-500 mb-1">
+            <DollarSign className="mx-auto mb-3 text-violet-500" size={32} />
+            <div className="font-black text-3xl text-violet-500 mb-1">
               {earningsLoading
                 ? "..."
                 : `${parseFloat(totalEarnings).toFixed(1)} HBAR`}
@@ -141,15 +141,15 @@ const ProfileDashboard: React.FC = () => {
               Total Earnings
             </div>
             {earningsError && (
-              <div className="text-xs text-red-600 mt-1">
+              <div className="text-xs text-violet-600 mt-1">
                 Error loading earnings
               </div>
             )}
           </div>
 
           <div className="border-4 border-black p-6 text-center bg-gray-50">
-            <Database className="mx-auto mb-3 text-red-500" size={32} />
-            <div className="font-black text-3xl text-red-500 mb-1">
+            <Database className="mx-auto mb-3 text-violet-500" size={32} />
+            <div className="font-black text-3xl text-violet-500 mb-1">
               {isLoading ? "..." : userDatasets.length}
             </div>
             <div className="font-mono text-sm uppercase font-black">
@@ -166,7 +166,7 @@ const ProfileDashboard: React.FC = () => {
             </h2>
             <Link
               to="/upload-dataset"
-              className="flex items-center space-x-2 bg-red-500 text-white font-black px-6 py-3 border-4 border-red-500 hover:bg-black hover:border-black transition-colors uppercase"
+              className="flex items-center space-x-2 bg-violet-500 text-white font-black px-6 py-3 border-4 border-violet-500 hover:bg-black hover:border-black transition-colors uppercase"
             >
               <Plus size={20} />
               <span>Add Dataset</span>
@@ -175,7 +175,7 @@ const ProfileDashboard: React.FC = () => {
 
           {isLoading ? (
             <div className="border-4 border-black p-8 text-center bg-gray-50">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto mb-4"></div>
               <p className="font-mono text-gray-600">
                 Loading your datasets...
               </p>
@@ -190,7 +190,7 @@ const ProfileDashboard: React.FC = () => {
                   {/* Card Header */}
                   <div className="bg-black text-white p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <span className="font-mono text-xs uppercase bg-red-500 text-black px-2 py-1">
+                      <span className="font-mono text-xs uppercase bg-violet-500 text-black px-2 py-1">
                         {dataset.category}
                       </span>
                       <span
@@ -217,7 +217,7 @@ const ProfileDashboard: React.FC = () => {
                         <div className="font-mono text-xs uppercase font-black text-gray-500">
                           Price
                         </div>
-                        <div className="font-black text-lg text-red-500">
+                        <div className="font-black text-lg text-violet-500">
                           {dataset.price} HBAR
                         </div>
                       </div>
@@ -259,7 +259,7 @@ const ProfileDashboard: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleDelete(dataset.id)}
-                        className="flex items-center justify-center border-2 border-red-500 bg-red-500 text-white p-2 hover:bg-red-600 transition-colors"
+                        className="flex items-center justify-center border-2 border-violet-500 bg-violet-500 text-white p-2 hover:bg-violet-600 transition-colors"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -290,7 +290,7 @@ const ProfileDashboard: React.FC = () => {
               </p>
               <Link
                 to="/upload-dataset"
-                className="inline-block bg-red-500 text-white font-black px-6 py-3 border-4 border-red-500 hover:bg-black hover:border-black transition-colors uppercase"
+                className="inline-block bg-violet-500 text-white font-black px-6 py-3 border-4 border-violet-500 hover:bg-black hover:border-black transition-colors uppercase"
               >
                 Upload Dataset
               </Link>

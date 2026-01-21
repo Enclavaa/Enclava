@@ -156,7 +156,7 @@ export const Marketplace: React.FC = () => {
           {/* Filter Toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center space-x-2 bg-black text-white font-black px-6 py-3 border-4 border-black hover:bg-red-500 hover:border-red-500 transition-colors uppercase mb-4"
+            className="flex items-center space-x-2 bg-black text-white font-black px-6 py-3 border-4 border-black hover:bg-violet-500 hover:border-violet-500 transition-colors uppercase mb-4"
           >
             <Filter size={20} />
             <span>Filters</span>
@@ -173,7 +173,7 @@ export const Marketplace: React.FC = () => {
                     onClick={() => setSelectedCategory(category)}
                     className={`p-2 border-2 font-mono font-black text-sm uppercase transition-colors ${
                       selectedCategory === category
-                        ? "border-red-500 bg-red-500 text-white"
+                        ? "border-violet-500 bg-violet-500 text-white"
                         : "border-black bg-white hover:bg-black hover:text-white"
                     }`}
                   >
@@ -206,15 +206,15 @@ export const Marketplace: React.FC = () => {
         {/* Error State */}
         {error && (
           <div className="text-center py-16">
-            <div className="border-4 border-red-500 p-8 bg-red-50">
-              <AlertCircle className="mx-auto mb-4 text-red-500" size={48} />
-              <h3 className="font-black text-2xl uppercase mb-4 text-red-800">
+            <div className="border-4 border-violet-500 p-8 bg-violet-50">
+              <AlertCircle className="mx-auto mb-4 text-violet-500" size={48} />
+              <h3 className="font-black text-2xl uppercase mb-4 text-violet-800">
                 Error Loading Datasets
               </h3>
-              <p className="font-mono text-red-600 mb-4">{error}</p>
+              <p className="font-mono text-violet-600 mb-4">{error}</p>
               <button
                 onClick={fetchDatasets}
-                className="bg-red-500 text-white font-black px-6 py-3 border-2 border-red-500 hover:bg-red-600 hover:border-red-600 transition-colors uppercase"
+                className="bg-violet-500 text-white font-black px-6 py-3 border-2 border-violet-500 hover:bg-violet-600 hover:border-violet-600 transition-colors uppercase"
               >
                 Try Again
               </button>
@@ -237,10 +237,10 @@ export const Marketplace: React.FC = () => {
                   {/* Card Header */}
                   <div className="bg-black text-white p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <span className="font-mono text-xs uppercase bg-red-500 text-black px-2 py-1">
+                      <span className="font-mono text-xs uppercase bg-violet-500 text-black px-2 py-1">
                         {formatCategory(dataset.category)}
                       </span>
-                      <span className="font-black text-lg text-red-500">
+                      <span className="font-black text-lg text-violet-500">
                         {dataset.price} HBAR
                       </span>
                     </div>
@@ -261,7 +261,7 @@ export const Marketplace: React.FC = () => {
                       {shouldTruncate && (
                         <button
                           onClick={() => toggleDescription(dataset.id)}
-                          className="mt-2 font-mono text-xs text-red-500 hover:text-red-700 transition-colors flex items-center space-x-1"
+                          className="mt-2 font-mono text-xs text-violet-500 hover:text-violet-700 transition-colors flex items-center space-x-1"
                         >
                           <span>{isExpanded ? "SHOW LESS" : "READ MORE"}</span>
                           {isExpanded ? (
@@ -312,7 +312,7 @@ export const Marketplace: React.FC = () => {
                       onClick={() =>
                         (window.location.href = `/dataset/${dataset.id}`)
                       }
-                      className="w-full border-4 py-3 font-black uppercase text-lg transition-colors border-red-500 bg-red-500 text-white hover:bg-black hover:border-black mt-auto"
+                      className="w-full border-4 py-3 font-black uppercase text-lg transition-colors border-violet-500 bg-violet-500 text-white hover:bg-black hover:border-black mt-auto"
                     >
                       VIEW
                     </button>
@@ -339,13 +339,13 @@ export const Marketplace: React.FC = () => {
         {!loading && !error && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="border-2 border-black p-4 text-center">
-              <div className="font-mono text-2xl font-black text-red-500">
+              <div className="font-mono text-2xl font-black text-violet-500">
                 {datasets.length}
               </div>
               <div className="font-black uppercase text-sm">Total Datasets</div>
             </div>
             <div className="border-2 border-black p-4 text-center">
-              <div className="font-mono text-2xl font-black text-red-500">
+              <div className="font-mono text-2xl font-black text-violet-500">
                 {datasets.filter((d) => d.status === "active").length}
               </div>
               <div className="font-black uppercase text-sm">
@@ -353,7 +353,7 @@ export const Marketplace: React.FC = () => {
               </div>
             </div>
             <div className="border-2 border-black p-4 text-center">
-              <div className="font-mono text-2xl font-black text-red-500">
+              <div className="font-mono text-2xl font-black text-violet-500">
                 {formatFileSize(
                   datasets.reduce(
                     (total, dataset) => total + dataset.dataset_size,
@@ -366,7 +366,7 @@ export const Marketplace: React.FC = () => {
               </div>
             </div>
             <div className="border-2 border-black p-4 text-center">
-              <div className="font-mono text-2xl font-black text-red-500">
+              <div className="font-mono text-2xl font-black text-violet-500">
                 {datasets
                   .reduce((total, dataset) => total + dataset.price, 0)
                   .toFixed(1)}{" "}

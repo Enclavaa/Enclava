@@ -137,7 +137,7 @@ const DatasetDetails: React.FC = () => {
     return (
       <div className="min-h-screen bg-white text-black flex items-center justify-center">
         <div className="border-4 border-black p-8 text-center bg-gray-50">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto mb-4"></div>
           <p className="font-mono text-gray-600">Loading dataset details...</p>
         </div>
       </div>
@@ -156,7 +156,7 @@ const DatasetDetails: React.FC = () => {
           </p>
           <Link
             to="/marketplace"
-            className="inline-block bg-red-500 text-white font-black px-6 py-3 border-4 border-red-500 hover:bg-black hover:border-black transition-colors uppercase"
+            className="inline-block bg-violet-500 text-white font-black px-6 py-3 border-4 border-violet-500 hover:bg-black hover:border-black transition-colors uppercase"
           >
             Back to Marketplace
           </Link>
@@ -176,7 +176,7 @@ const DatasetDetails: React.FC = () => {
                 {dataset.name}
               </h1>
               <div className="flex items-center gap-4">
-                <span className="font-mono text-xs uppercase bg-red-500 text-black px-3 py-1 font-black">
+                <span className="font-mono text-xs uppercase bg-violet-500 text-black px-3 py-1 font-black">
                   {dataset.category}
                 </span>
                 <span
@@ -192,7 +192,7 @@ const DatasetDetails: React.FC = () => {
               </div>
             </div>
             <div className="text-right">
-              <div className="font-black text-4xl text-red-500 mb-1">
+              <div className="font-black text-4xl text-violet-500 mb-1">
                 {dataset.price} HBAR
               </div>
               <div className="font-mono text-sm uppercase">PRICE</div>
@@ -225,7 +225,7 @@ const DatasetDetails: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="border-2 border-black p-4 bg-gray-50">
                   <div className="flex items-center space-x-2 mb-2">
-                    <HardDrive className="text-red-500" size={20} />
+                    <HardDrive className="text-violet-500" size={20} />
                     <span className="font-black uppercase">Size</span>
                   </div>
                   <div className="font-mono text-lg font-black">
@@ -235,7 +235,7 @@ const DatasetDetails: React.FC = () => {
 
                 <div className="border-2 border-black p-4 bg-gray-50">
                   <div className="flex items-center space-x-2 mb-2">
-                    <User className="text-red-500" size={20} />
+                    <User className="text-violet-500" size={20} />
                     <span className="font-black uppercase">Owner</span>
                   </div>
                   <div className="font-mono text-lg font-black">
@@ -248,7 +248,7 @@ const DatasetDetails: React.FC = () => {
 
                 <div className="border-2 border-black p-4 bg-gray-50">
                   <div className="flex items-center space-x-2 mb-2">
-                    <Tag className="text-red-500" size={20} />
+                    <Tag className="text-violet-500" size={20} />
                     <span className="font-black uppercase">Category</span>
                   </div>
                   <div className="font-mono text-lg font-black">
@@ -258,7 +258,7 @@ const DatasetDetails: React.FC = () => {
 
                 <div className="border-2 border-black p-4 bg-gray-50">
                   <div className="flex items-center space-x-2 mb-2">
-                    <Calendar className="text-red-500" size={20} />
+                    <Calendar className="text-violet-500" size={20} />
                     <span className="font-black uppercase">Created</span>
                   </div>
                   <div className="font-mono text-lg font-black">
@@ -271,7 +271,7 @@ const DatasetDetails: React.FC = () => {
               {dataset.nft_tx && (
                 <div className="mt-4 border-2 border-black p-4 bg-gray-50">
                   <div className="flex items-center space-x-2 mb-2">
-                    <Shield className="text-red-500" size={20} />
+                    <Shield className="text-violet-500" size={20} />
                     <span className="font-black uppercase">
                       NFT Transaction
                     </span>
@@ -333,7 +333,7 @@ const DatasetDetails: React.FC = () => {
                   className={`w-full border-4 py-4 font-black uppercase text-lg transition-colors ${
                     isPurchasing
                       ? "border-gray-300 bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "border-red-500 bg-red-500 text-white hover:bg-black hover:border-black"
+                      : "border-violet-500 bg-violet-500 text-white hover:bg-black hover:border-black"
                   }`}
                 >
                   {isPurchasing ? "PURCHASING..." : "BUY NOW"}
@@ -388,11 +388,11 @@ const DatasetDetails: React.FC = () => {
               >
                 <div className="bg-black text-white p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="font-mono text-xs uppercase bg-red-500 text-black px-2 py-1">
+                    <span className="font-mono text-xs uppercase bg-violet-500 text-black px-2 py-1">
                       {relatedDataset.category}
                     </span>
                     <ArrowRight
-                      className="text-white group-hover:text-red-500 transition-colors"
+                      className="text-white group-hover:text-violet-500 transition-colors"
                       size={20}
                     />
                   </div>
@@ -402,7 +402,7 @@ const DatasetDetails: React.FC = () => {
                 </div>
                 <div className="p-4">
                   <div className="flex justify-between items-center">
-                    <span className="font-black text-xl text-red-500">
+                    <span className="font-black text-xl text-violet-500">
                       {relatedDataset.price}
                     </span>
                     <span className="font-mono text-sm uppercase font-black">

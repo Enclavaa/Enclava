@@ -429,12 +429,12 @@ const UploadDataset: React.FC = () => {
                 ) : mintError ? (
                   <div className="space-y-2">
                     <div className="flex items-center justify-center space-x-2">
-                      <AlertCircle className="text-red-600" size={24} />
-                      <span className="font-black text-red-700 uppercase">
+                      <AlertCircle className="text-violet-600" size={24} />
+                      <span className="font-black text-violet-700 uppercase">
                         NFT Minting Failed
                       </span>
                     </div>
-                    <p className="font-mono text-sm text-red-600">
+                    <p className="font-mono text-sm text-violet-600">
                       {mintError}
                     </p>
                     <button
@@ -503,7 +503,7 @@ const UploadDataset: React.FC = () => {
                           : isMintingNFT || isPending || isConfirming
                           ? "text-blue-600 font-black"
                           : mintError
-                          ? "text-red-600 font-black"
+                          ? "text-violet-600 font-black"
                           : "text-gray-600"
                       }
                     >
@@ -580,14 +580,14 @@ const UploadDataset: React.FC = () => {
           <div
             className={`flex items-center space-x-4 p-4 border-4 ${
               currentStep === "upload"
-                ? "border-red-500 bg-red-50"
+                ? "border-violet-500 bg-violet-50"
                 : "border-green-500 bg-green-50"
             }`}
           >
             <div
               className={`w-8 h-8 border-2 border-black flex items-center justify-center font-black ${
                 currentStep === "upload"
-                  ? "bg-red-500 text-white"
+                  ? "bg-violet-500 text-white"
                   : "bg-green-500 text-white"
               }`}
             >
@@ -602,7 +602,7 @@ const UploadDataset: React.FC = () => {
             <div
               className={`w-8 h-8 border-2 border-black flex items-center justify-center font-black ${
                 currentStep === "review"
-                  ? "bg-red-500 text-white"
+                  ? "bg-violet-500 text-white"
                   : "bg-gray-300"
               }`}
             >
@@ -633,10 +633,10 @@ const UploadDataset: React.FC = () => {
                 <div
                   className={`border-4 border-dashed transition-all ${
                     isDragging
-                      ? "border-red-500 bg-red-50"
+                      ? "border-violet-500 bg-violet-50"
                       : errors.file
-                      ? "border-red-500 bg-red-50"
-                      : "border-black bg-gray-50 hover:border-red-500 hover:bg-red-50"
+                      ? "border-violet-500 bg-violet-50"
+                      : "border-black bg-gray-50 hover:border-violet-500 hover:bg-violet-50"
                   }`}
                   onDrop={handleDrop}
                   onDragOver={(e) => e.preventDefault()}
@@ -655,7 +655,7 @@ const UploadDataset: React.FC = () => {
                         <button
                           type="button"
                           onClick={removeFile}
-                          className="border-2 border-red-500 bg-red-500 text-white p-1 hover:bg-red-600 transition-colors"
+                          className="border-2 border-violet-500 bg-violet-500 text-white p-1 hover:bg-violet-600 transition-colors"
                         >
                           <X size={16} />
                         </button>
@@ -690,8 +690,8 @@ const UploadDataset: React.FC = () => {
                   )}
                 </div>
                 {errors.file && (
-                  <div className="mt-2 border-2 border-red-500 bg-red-50 p-2">
-                    <div className="flex items-center space-x-2 text-red-500">
+                  <div className="mt-2 border-2 border-violet-500 bg-violet-50 p-2">
+                    <div className="flex items-center space-x-2 text-violet-500">
                       <AlertCircle size={16} />
                       <span className="font-black text-sm">{errors.file}</span>
                     </div>
@@ -720,7 +720,7 @@ const UploadDataset: React.FC = () => {
                 className={`w-full border-4 py-6 font-black uppercase text-xl transition-colors ${
                   isGenerating
                     ? "border-gray-300 bg-gray-300 text-gray-700 cursor-not-allowed"
-                    : "border-red-500 bg-red-500 text-white hover:bg-black hover:border-black"
+                    : "border-violet-500 bg-violet-500 text-white hover:bg-black hover:border-black"
                 }`}
               >
                 {isGenerating ? "ANALYZING DATASET..." : "ANALYZE WITH AI"}
@@ -820,7 +820,7 @@ const UploadDataset: React.FC = () => {
                 <div
                   className={`w-full border-4 bg-white p-4 font-mono text-lg transition-colors ${
                     !isConnected || !address
-                      ? "border-red-500"
+                      ? "border-violet-500"
                       : "border-green-500"
                   }`}
                 >
@@ -834,16 +834,16 @@ const UploadDataset: React.FC = () => {
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <AlertCircle className="text-red-500" size={20} />
-                      <span className="text-red-500 font-black uppercase">
+                      <AlertCircle className="text-violet-500" size={20} />
+                      <span className="text-violet-500 font-black uppercase">
                         WALLET NOT CONNECTED - PLEASE CONNECT YOUR WALLET
                       </span>
                     </div>
                   )}
                 </div>
                 {errors.wallet && (
-                  <div className="mt-2 border-2 border-red-500 bg-red-50 p-2">
-                    <div className="flex items-center space-x-2 text-red-500">
+                  <div className="mt-2 border-2 border-violet-500 bg-violet-50 p-2">
+                    <div className="flex items-center space-x-2 text-violet-500">
                       <AlertCircle size={16} />
                       <span className="font-black text-sm">
                         {errors.wallet}
@@ -869,8 +869,8 @@ const UploadDataset: React.FC = () => {
                     placeholder="0.0"
                     className={`flex-1 border-4 border-r-0 bg-white p-4 font-mono text-lg placeholder-gray-500 outline-none transition-colors ${
                       errors.dataset_price
-                        ? "border-red-500"
-                        : "border-black focus:border-red-500"
+                        ? "border-violet-500"
+                        : "border-black focus:border-violet-500"
                     }`}
                   />
                   <div className="border-4 border-black bg-black text-white p-4 font-mono text-lg font-black uppercase">
@@ -878,8 +878,8 @@ const UploadDataset: React.FC = () => {
                   </div>
                 </div>
                 {errors.dataset_price && (
-                  <div className="mt-2 border-2 border-red-500 bg-red-50 p-2">
-                    <div className="flex items-center space-x-2 text-red-500">
+                  <div className="mt-2 border-2 border-violet-500 bg-violet-50 p-2">
+                    <div className="flex items-center space-x-2 text-violet-500">
                       <AlertCircle size={16} />
                       <span className="font-black text-sm">
                         {errors.dataset_price}
@@ -904,7 +904,7 @@ const UploadDataset: React.FC = () => {
                   className={`flex-1 border-4 py-4 font-black uppercase text-lg transition-colors ${
                     isSubmitting
                       ? "border-gray-300 bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "border-red-500 bg-red-500 text-white hover:bg-black hover:border-black"
+                      : "border-violet-500 bg-violet-500 text-white hover:bg-black hover:border-black"
                   }`}
                 >
                   {isSubmitting ? "📤 UPLOADING..." : "🚀 LIST DATASET"}

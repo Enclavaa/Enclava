@@ -6,7 +6,7 @@ export const CTASection: React.FC = () => {
     <section className="bg-black text-white py-20 px-6 md:px-12 lg:px-24">
       <div className="max-w-6xl mx-auto text-center">
         {/* Main CTA Block */}
-        <div className="border-4 border-red-500 p-12 mb-16 bg-red-500 text-black">
+        <div className="border-4 border-violet-500 p-12 mb-16 bg-violet-500 text-black">
           <h2 className="text-4xl md:text-6xl font-black uppercase mb-8">
             Be part of the data
             <br />
@@ -54,11 +54,10 @@ export const CTASection: React.FC = () => {
         </div>
 
         {/* Footer ASCII */}
-        <div className="mt-16 font-mono text-xs text-red-500">
+        <div className="mt-16 font-mono text-xs text-violet-500">
           <pre>
-            {`═══════════════════════════════════════
-          ENCLAVA © 2026
-═══════════════════════════════════════`}
+            {`
+          ENCLAVA © 2026 ALL RIGHTS RESERVED.`}
           </pre>
         </div>
       </div>

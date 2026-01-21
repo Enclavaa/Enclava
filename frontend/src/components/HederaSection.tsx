@@ -9,20 +9,20 @@ export const HederaSection: React.FC = () => {
           <div className="lg:w-2/3 lg:pr-16">
             <h2 className="text-5xl md:text-7xl font-black uppercase mb-8">
               Built on
-              <span className="text-red-500"> Hedera</span>
+              <span className="text-violet-500"> Hedera</span>
             </h2>
 
             <div className="space-y-6">
               <div className="flex items-center font-mono text-lg">
-                <span className="text-red-500 mr-4">[✓]</span>
+                <span className="text-violet-500 mr-4">[✓]</span>
                 <span className="font-black">0.001$ transaction fees</span>
               </div>
               <div className="flex items-center font-mono text-lg">
-                <span className="text-red-500 mr-4">[✓]</span>
+                <span className="text-violet-500 mr-4">[✓]</span>
                 <span className="font-black">Agent-ready infrastructure</span>
               </div>
               <div className="flex items-center font-mono text-lg">
-                <span className="text-red-500 mr-4">[✓]</span>
+                <span className="text-violet-500 mr-4">[✓]</span>
                 <span className="font-black">
                   High-performance marketplaces
                 </span>
@@ -47,7 +47,7 @@ export const HederaSection: React.FC = () => {
         {/* Performance metrics */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center border-2 border-black p-8">
-            <div className="font-mono text-4xl font-black text-red-500 mb-2">
+            <div className="font-mono text-4xl font-black text-violet-500 mb-2">
               &lt;400ms
             </div>
             <div className="font-black uppercase text-lg">
@@ -55,13 +55,13 @@ export const HederaSection: React.FC = () => {
             </div>
           </div>
           <div className="text-center border-2 border-black p-8">
-            <div className="font-mono text-4xl font-black text-red-500 mb-2">
+            <div className="font-mono text-4xl font-black text-violet-500 mb-2">
               0.001$
             </div>
             <div className="font-black uppercase text-lg">Low Transaction Fee</div>
           </div>
           <div className="text-center border-2 border-black p-8">
-            <div className="font-mono text-4xl font-black text-red-500 mb-2">
+            <div className="font-mono text-4xl font-black text-violet-500 mb-2">
               100%
             </div>
             <div className="font-black uppercase text-lg">Data Ownership</div>

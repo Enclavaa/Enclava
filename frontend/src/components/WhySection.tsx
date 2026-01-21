@@ -19,7 +19,7 @@ export const WhySection: React.FC = () => {
           {features.map((feature, index) => (
             <div key={index} className="border-4 border-black p-8">
               <div className="flex items-start">
-                <span className="font-mono text-red-500 text-2xl mr-4">
+                <span className="font-mono text-violet-500 text-2xl mr-4">
                   [{(index + 1).toString().padStart(2, '0')}]
                 </span>
                 <p className="text-2xl md:text-3xl font-black uppercase leading-tight">
@@ -33,7 +33,7 @@ export const WhySection: React.FC = () => {
         {/* Geometric divider */}
         <div className="mt-16 flex items-center justify-center">
           <div className="w-4 h-4 bg-black transform rotate-45 mx-2"></div>
-          <div className="w-8 h-8 bg-red-500 transform rotate-45 mx-2"></div>
+          <div className="w-8 h-8 bg-violet-500 transform rotate-45 mx-2"></div>
           <div className="w-4 h-4 bg-black transform rotate-45 mx-2"></div>
         </div>
       </div>
