@@ -15,7 +15,7 @@ export const HederaSection: React.FC = () => {
             <div className="space-y-6">
               <div className="flex items-center font-mono text-lg">
                 <span className="text-red-500 mr-4">[✓]</span>
-                <span className="font-black">Sub-400ms finality</span>
+                <span className="font-black">0.001$ transaction fees</span>
               </div>
               <div className="flex items-center font-mono text-lg">
                 <span className="text-red-500 mr-4">[✓]</span>
@@ -56,9 +56,9 @@ export const HederaSection: React.FC = () => {
           </div>
           <div className="text-center border-2 border-black p-8">
             <div className="font-mono text-4xl font-black text-red-500 mb-2">
-              22K+
+              0.001$
             </div>
-            <div className="font-black uppercase text-lg">TPS Capacity</div>
+            <div className="font-black uppercase text-lg">Low Transaction Fee</div>
           </div>
           <div className="text-center border-2 border-black p-8">
             <div className="font-mono text-4xl font-black text-red-500 mb-2">
