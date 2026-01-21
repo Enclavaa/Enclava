@@ -1,6 +1,6 @@
 import React from "react";
 
-export const SeiSection: React.FC = () => {
+export const HederaSection: React.FC = () => {
   return (
     <section className="bg-white text-black py-20 px-6 md:px-12 lg:px-24">
       <div className="max-w-6xl mx-auto">
