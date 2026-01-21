@@ -108,7 +108,6 @@ Create a `.env` file in the root directory:
 
 ```env
 DATABASE_URL=postgresql://username:password@localhost/enclava
-ALCHEMY_RPC_URL=https://your-hedera-rpc-url
 GEMINI_API_KEY=your-gemini-api-key
 PORT=8080
 ```
