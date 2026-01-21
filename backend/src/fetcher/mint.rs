@@ -43,8 +43,8 @@ pub async fn mint_nft_fetcher(app_state: &WebAppState) -> Result<()> {
     let contract_address = Address::from_str(ENCLAVA_CONTRACT_ADDRESS)?;
     let event_sig = "DatasetNFTMinted(address,uint256,string)";
 
-    // let mut last_block = provider.get_block_number().await?;
-    let mut last_block = 0;
+    let mut last_block = provider.get_block_number().await?;
+    // let mut last_block = 0;
 
     loop {
         let current_block = provider.get_block_number().await?;

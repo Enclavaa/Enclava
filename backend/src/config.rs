@@ -4,8 +4,6 @@ use once_cell::sync::Lazy;
 pub struct AppConfig {
     pub database_url: String,
     pub port: u16,
-    pub hedera_rpc_url: String,
-    pub hedera_mirror_node_url: String,
 }
 
 impl AppConfig {
@@ -18,10 +16,6 @@ impl AppConfig {
                 .unwrap_or_else(|_| "8080".to_string())
                 .parse()
                 .expect("PORT must be a valid u16"),
-            hedera_rpc_url: std::env::var("HEDERA_RPC_URL")
-                .unwrap_or_else(|_| "https://testnet.hashio.io/api".to_string()),
-            hedera_mirror_node_url: std::env::var("HEDERA_MIRROR_NODE_URL")
-                .unwrap_or_else(|_| "https://testnet.mirrornode.hedera.com".to_string()),
         }
     }
 }

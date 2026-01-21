@@ -1,4 +1,5 @@
-const BASE_URL = "https://enclava.eaglefi.io";
+// const BASE_URL = "https://enclava.eaglefi.io";
+const BASE_URL = "http://localhost:8080";
 
 export interface GenerateDatasetDetailsRequest {
   file: File;
